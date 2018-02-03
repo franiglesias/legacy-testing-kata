@@ -1,0 +1,26 @@
+{
+  "name": "fi/legacy-quotebot-kata",
+  "description": "PHP port of the legacy-testing-kata-java by Cyrille Martraire",
+  "minimum-stability": "stable",
+  "license": "Apache License 2.0",
+  "authors": [
+    {
+      "name": "Fran Iglesias",
+      "email": "franiglesias@mac.com"
+    }
+  ],
+  "require": {
+    "phpunit/phpunit": "6.5.6"
+  },
+  "config": {
+    "dir-bin": "bin"
+  },
+  "autoload": {
+    "psr-4": {
+      "Quotebot\\": "src/"
+    },
+    "classmap": [
+      "lib/"
+    ]
+  }
+}
