@@ -8,7 +8,6 @@
 
 namespace Quotebot;
 
-
 class AdSpace
 {
     private static $cache = [];
@@ -23,6 +22,7 @@ class AdSpace
 
         $listAllBlogs = TechBlogs::listAllBlogs();
         static::$cache['bloglist'] = $listAllBlogs;
+
         return $listAllBlogs;
     }
 }

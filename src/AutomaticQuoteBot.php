@@ -2,7 +2,6 @@
 
 namespace Quotebot;
 
-
 class AutomaticQuoteBot
 {
     public function sendAllQuotes(string $mode)

@@ -2,8 +2,8 @@
 
 namespace Quotebot;
 
-
-class Application {
+class Application
+{
     public static function main(array $args = null)
     {
         $bot = new AutomaticQuoteBot();
