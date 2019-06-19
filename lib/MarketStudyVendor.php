@@ -4,7 +4,7 @@ class MarketStudyVendor
 {
     public function averagePrice(string $blog): float
     {
-        if (getenv("license") === null) {
+        if (getenv("license") === false) {
             throw new RuntimeException("[Stupid license] Missing license!!!!");
         }
 
