@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: frankie
- * Date: 1/2/18
- * Time: 21:52
- */
 
 namespace Quotebot;
 
@@ -12,6 +6,7 @@ class AdSpace
 {
     private static $cache = [];
 
+    /** Get all ad spaces */
     public static function getAdSpaces()
     {
         if (isset(static::$cache['bloglist'])) {

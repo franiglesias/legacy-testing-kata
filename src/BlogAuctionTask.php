@@ -14,7 +14,7 @@ class BlogAuctionTask
         $this->marketDataRetriever = new MarketStudyVendor();
     }
 
-    public function PriceAndPublish(string $blog, string $mode)
+    public function priceAndPublish(string $blog, string $mode)
     {
         $avgPrice = $this->marketDataRetriever->averagePrice($blog);
 

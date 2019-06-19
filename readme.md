@@ -29,7 +29,7 @@ Then, run composer:
     composer install
 ```
 
-This will install PHPUnit. PSR4 autoload for the QuoteBot namespace and lib folder is loaded via classmap.
+This will install PHPUnit. PSR4 autoload for the `QuoteBot` namespace and `lib` folder is loaded via classmap.
 
 And then, execute the run.php script to see how this program works (to say something):
 
@@ -39,6 +39,7 @@ And then, execute the run.php script to see how this program works (to say somet
 
 Or use the IDE facilities to run.
 
+**Important note:** you must not touch the `lib` folder, given it is considered a vendor. 
 
 --
 
