@@ -41,6 +41,62 @@ Or use the IDE facilities to run.
 
 **Important note:** you must not touch the `lib` folder, given it is considered a vendor. 
 
+## Notes on practicing this kata inside docker
+
+Start containers. First time docker needs to download images, so it could take a while.
+
+```
+docker-compose up -d
+```
+
+You can jump into the container
+
+```
+docker exec -it quotebot bash
+```
+
+Run composer install inside de container or 
+
+```
+docker exec -it quotebot composer install
+```
+
+## Notes on configuring PHPStorm with the dockerized environment
+
+First of all, start up docker containers.
+
+```
+docker-compose up
+```
+
+### Configure PHP CLI
+
+Go to **PHP Storm > Preferences > Languages and Frameworks > PHP**
+
+Clic **CLI Interpreter …**
+
+Add Remote Interpreter from Docker
+
+Select (radio button) **docker-compose** and select **php** service.
+
+### Configure XDebug
+
+Go to **PHP Storm > Preferences > Languages and Frameworks > PHP > Debug**
+
+Make sure XDebug port is 9001
+
+### Configure PhpUnit
+
+Go to **PHP Storm > Preferences > Languages and Frameworks > PHP > Test Frameworks**
+
+Add **PhpUnit by remote interpreter** configuration. Select the remote Interpreter you've configured before.
+
+PHPUnit Library from composer autoloader. Path to script should be: vendor/autoload.php
+
+Select phpunit.xml as default configuration file.
+
+
+
 --
 
 If you hesitate where to start, here are some of the tricky bits that make it hard to test:

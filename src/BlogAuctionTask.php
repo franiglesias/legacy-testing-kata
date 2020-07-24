@@ -24,19 +24,19 @@ class BlogAuctionTask
         $timeFactor = 1;
 
         if ($mode === 'SLOW') {
-            $$timeFactor = 2;
+            $timeFactor = 2;
         }
 
         if ($mode === 'MEDIUM') {
-            $$timeFactor = 4;
+            $timeFactor = 4;
         }
 
         if ($mode === 'FAST') {
-            $$timeFactor = 8;
+            $timeFactor = 8;
         }
 
         if ($mode === 'ULTRAFAST') {
-            $$timeFactor = 8;
+            $timeFactor = 13;
         }
 
         $proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
