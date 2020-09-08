@@ -1,6 +1,6 @@
 <?php
 
-class MarketStudyVendor
+class MarketStudyVendor implements MarketStudyInterface
 {
     public function averagePrice(string $blog): float
     {
