@@ -43,6 +43,11 @@ class BlogAuctionTask
             * $timeFactor
             * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
 
+        $this->publishProposal($proposal);
+    }
+
+    protected function publishProposal(int $proposal): void
+    {
         \QuotePublisher::publish($proposal);
     }
 }
