@@ -3,6 +3,8 @@ services:
     php:
         build: ./docker
         container_name: quotebot
+        environment:
+            license: some
         volumes:
             - ./:/var/www/dojo
         tty: true
