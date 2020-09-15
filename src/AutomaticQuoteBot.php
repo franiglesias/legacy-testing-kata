@@ -13,9 +13,14 @@ class AutomaticQuoteBot
 
     public function sendAllQuotes(string $mode): void
     {
-        $blogs = AdSpace::getAdSpaces($mode);
+        $blogs = $this->getBlogs($mode);
         foreach ($blogs as $blog) {
             $this->blogAuctionTask->priceAndPublish($blog, $mode);
         }
+    }
+
+    protected function getBlogs(string $mode)
+    {
+        return AdSpace::getAdSpaces($mode);
     }
 }

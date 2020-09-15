@@ -16,7 +16,13 @@ class QuoteBotAppTest extends TestCase
             }
         };
 
-        $automaticQuoteBot = new AutomaticQuoteBot($blogAuctionTask);
+        $automaticQuoteBot = new class($blogAuctionTask) extends AutomaticQuoteBot {
+            protected function getBlogs(string $mode): array
+            {
+                return ['Blog1', 'Blog2'];
+            }
+        };
+
         $automaticQuoteBot->sendAllQuotes('SLOW');
 
         self::assertTrue(true);
