@@ -2,6 +2,7 @@
 
 namespace Tests\Quotebot;
 
+use Quotebot\Application;
 use Quotebot\AutomaticQuoteBot;
 use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +24,8 @@ class QuoteBotAppTest extends TestCase
             }
         };
 
-        $automaticQuoteBot->sendAllQuotes('SLOW');
+        Application::inject($automaticQuoteBot);
+        Application::main();
 
         self::assertTrue(true);
     }

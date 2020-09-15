@@ -4,10 +4,17 @@ namespace Quotebot;
 
 class Application
 {
+    private static $bot;
+
+    public static function inject($bot)
+    {
+        self::$bot = $bot;
+    }
+
     /** main application method */
     public static function main(array $args = null)
     {
-        $bot = new AutomaticQuoteBot();
-        $bot->sendAllQuotes('FAST');
+        self::$bot = self::$bot ?? new AutomaticQuoteBot();
+        self::$bot->sendAllQuotes('FAST');
     }
 }
