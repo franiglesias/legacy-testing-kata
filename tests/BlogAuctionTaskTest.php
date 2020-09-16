@@ -13,8 +13,7 @@ class BlogAuctionTaskTest extends TestCase
         $marketStudyVendor = $this->createMock(\MarketStudyVendor::class);
         $marketStudyVendor
             ->method('averagePrice')
-            ->willReturn(1
-            );
+            ->willReturn(0);
 
         $proposalPublisher = $this->createMock(ProposalPublisher::class);
         $proposalPublisher
