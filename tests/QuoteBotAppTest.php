@@ -11,7 +11,10 @@ class QuoteBotAppTest extends TestCase
 {
     public function testShouldRun(): void
     {
-        $blogAuctionTask = new class() extends BlogAuctionTask {
+        $marketStudyVendor = $this->createMock(\MarketStudyVendor::class);
+        $marketStudyVendor->method('averagePrice')->willReturn(0);
+
+        $blogAuctionTask = new class($marketStudyVendor) extends BlogAuctionTask {
             protected function publishProposal(int $proposal): void
             {
             }

@@ -7,11 +7,11 @@ use MarketStudyVendor;
 class BlogAuctionTask
 {
     /** @var MarketStudyVendor */
-    private $marketDataRetriever;
+    protected $marketDataRetriever;
 
-    public function __construct()
+    public function __construct($marketDataRetriever = null)
     {
-        $this->marketDataRetriever = new MarketStudyVendor();
+        $this->marketDataRetriever = $marketDataRetriever ?? new MarketStudyVendor();
     }
 
     public function priceAndPublish(string $blog, string $mode)
