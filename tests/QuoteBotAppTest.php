@@ -6,6 +6,7 @@ use Quotebot\Application;
 use Quotebot\AutomaticQuoteBot;
 use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
+use Quotebot\Domain\ProposalPublisher;
 
 class QuoteBotAppTest extends TestCase
 {
@@ -14,11 +15,9 @@ class QuoteBotAppTest extends TestCase
         $marketStudyVendor = $this->createMock(\MarketStudyVendor::class);
         $marketStudyVendor->method('averagePrice')->willReturn(0);
 
-        $blogAuctionTask = new class($marketStudyVendor) extends BlogAuctionTask {
-            protected function publishProposal(int $proposal): void
-            {
-            }
-        };
+        $proposalPublisher = $this->createMock(ProposalPublisher::class);
+
+        $blogAuctionTask = new BlogAuctionTask($marketStudyVendor, $proposalPublisher);
 
         $automaticQuoteBot = new class($blogAuctionTask) extends AutomaticQuoteBot {
             protected function getBlogs(string $mode): array
