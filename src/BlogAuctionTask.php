@@ -26,9 +26,26 @@ class BlogAuctionTask
 
     public function priceAndPublish(string $blog, string $mode)
     {
-        $avgPrice = $this->marketDataRetriever->averagePrice($blog);
+        $averagePrice = $this->marketDataRetriever->averagePrice($blog);
 
-        $proposal = $avgPrice + 2;
+        $proposal = $averagePrice + 2;
+
+        $timeFactor = $this->timeFactor($mode);
+
+        $proposal = $proposal % 2 === 0
+            ? $this->calculateEvenProposal($proposal)
+            : $this->calculateOddProposal($timeFactor);
+
+        $this->publishProposal($proposal);
+    }
+
+    protected function publishProposal($proposal): void
+    {
+        $this->proposalPublisher->publish($proposal);
+    }
+
+    private function timeFactor(string $mode): int
+    {
         $timeFactor = 1;
 
         if ($mode === 'SLOW') {
@@ -46,16 +63,18 @@ class BlogAuctionTask
         if ($mode === 'ULTRAFAST') {
             $timeFactor = 13;
         }
-
-        $proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
-            * $timeFactor
-            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
-
-        $this->publishProposal($proposal);
+        return $timeFactor;
     }
 
-    protected function publishProposal($proposal): void
+    private function calculateEvenProposal(int $proposal): float
     {
-        $this->proposalPublisher->publish($proposal);
+        return 3.14 * $proposal;
+    }
+
+    private function calculateOddProposal(int $timeFactor)
+    {
+        return 3.15
+            * $timeFactor
+            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
     }
 }
