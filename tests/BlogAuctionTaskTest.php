@@ -5,17 +5,27 @@ namespace Quotebot;
 use Generator;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\ProposalPublisher;
+use Quotebot\Domain\TimeService;
 
 class BlogAuctionTaskTest extends TestCase
 {
 
     private $marketStudyVendor;
     private $proposalPublisher;
+    private $timeService;
+    private $blogAuctionTask;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->marketStudyVendor = $this->createMock(\MarketStudyVendor::class);
         $this->proposalPublisher = $this->createMock(ProposalPublisher::class);
+        $this->timeService = $this->createMock(TimeService::class);
+
+        $this->blogAuctionTask = new BlogAuctionTask(
+            $this->marketStudyVendor,
+            $this->proposalPublisher,
+            $this->timeService
+        );
     }
 
     /** @dataProvider casesProvider */
@@ -48,7 +58,6 @@ class BlogAuctionTaskTest extends TestCase
 
     protected function whenIsPricedWIthMode($mode): void
     {
-        $blogAuctionTask = new BlogAuctionTask($this->marketStudyVendor, $this->proposalPublisher);
-        $blogAuctionTask->priceAndPublish('blog', $mode);
+        $this->blogAuctionTask->priceAndPublish('blog', $mode);
     }
 }

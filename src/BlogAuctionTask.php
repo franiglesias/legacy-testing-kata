@@ -4,7 +4,9 @@ namespace Quotebot;
 
 use MarketStudyVendor;
 use Quotebot\Domain\ProposalPublisher;
+use Quotebot\Domain\TimeService;
 use Quotebot\Infrastructure\QuoteProposalPublisher;
+use Quotebot\Infrastructure\SystemTimeService;
 
 class BlogAuctionTask
 {
@@ -14,14 +16,20 @@ class BlogAuctionTask
      * @var ProposalPublisher|null
      */
     private $proposalPublisher;
+    /**
+     * @var TimeService
+     */
+    private $timeService;
 
     public function __construct(
         $marketDataRetriever = null,
-        ?ProposalPublisher $proposalPublisher = null
+        ?ProposalPublisher $proposalPublisher = null,
+        ?TimeService $timeService = null
     )
     {
         $this->marketDataRetriever = $marketDataRetriever ?? new MarketStudyVendor();
         $this->proposalPublisher = $proposalPublisher ?? new QuoteProposalPublisher();
+        $this->timeService = $timeService ?? new SystemTimeService();
     }
 
     public function priceAndPublish(string $blog, string $mode)
@@ -73,8 +81,9 @@ class BlogAuctionTask
 
     private function calculateOddProposal(int $timeFactor)
     {
+        $timeInterval = $this->timeService->timeInterval();
         return 3.15
             * $timeFactor
-            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
+            * $timeInterval;
     }
 }
