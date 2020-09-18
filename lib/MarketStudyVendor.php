@@ -1,6 +1,6 @@
 <?php
 
-class MarketStudyVendor
+class MarketStudyVendor implements \Quotebot\Domain\MarketDataRetriever
 {
     public function averagePrice(string $blog): float
     {

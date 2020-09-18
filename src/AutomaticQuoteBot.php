@@ -6,9 +6,9 @@ class AutomaticQuoteBot
 {
     private $blogAuctionTask;
 
-    public function __construct(?BlogAuctionTask $blogAuctionTask = null)
+    public function __construct(BlogAuctionTask $blogAuctionTask)
     {
-        $this->blogAuctionTask = $blogAuctionTask ?? new BlogAuctionTask();
+        $this->blogAuctionTask = $blogAuctionTask;
     }
 
     public function sendAllQuotes(string $mode): void

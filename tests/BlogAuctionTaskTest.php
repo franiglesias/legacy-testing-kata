@@ -4,25 +4,26 @@ namespace Quotebot;
 
 use Generator;
 use PHPUnit\Framework\TestCase;
+use Quotebot\Domain\MarketDataRetriever;
 use Quotebot\Domain\ProposalPublisher;
 use Quotebot\Domain\TimeService;
 
 class BlogAuctionTaskTest extends TestCase
 {
 
-    private $marketStudyVendor;
+    private $marketDataRetriever;
     private $proposalPublisher;
     private $timeService;
     private $blogAuctionTask;
 
     protected function setUp(): void
     {
-        $this->marketStudyVendor = $this->createMock(\MarketStudyVendor::class);
+        $this->marketDataRetriever = $this->createMock(MarketDataRetriever::class);
         $this->proposalPublisher = $this->createMock(ProposalPublisher::class);
         $this->timeService = $this->createMock(TimeService::class);
 
         $this->blogAuctionTask = new BlogAuctionTask(
-            $this->marketStudyVendor,
+            $this->marketDataRetriever,
             $this->proposalPublisher,
             $this->timeService
         );
@@ -45,7 +46,7 @@ class BlogAuctionTaskTest extends TestCase
 
     protected function givenAnAveragePrice($averagePrice): void
     {
-        $this->marketStudyVendor
+        $this->marketDataRetriever
             ->method('averagePrice')
             ->willReturn($averagePrice);
     }

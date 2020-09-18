@@ -3,6 +3,7 @@
 namespace Quotebot;
 
 use MarketStudyVendor;
+use Quotebot\Domain\MarketDataRetriever;
 use Quotebot\Domain\ProposalPublisher;
 use Quotebot\Domain\TimeService;
 use Quotebot\Infrastructure\QuoteProposalPublisher;
@@ -10,24 +11,20 @@ use Quotebot\Infrastructure\SystemTimeService;
 
 class BlogAuctionTask
 {
-    /** @var MarketStudyVendor */
+    /** @var MarketDataRetriever */
     protected $marketDataRetriever;
-    /**
-     * @var ProposalPublisher|null
-     */
+    /** @var ProposalPublisher|null */
     private $proposalPublisher;
-    /**
-     * @var TimeService
-     */
+    /** @var TimeService */
     private $timeService;
 
     public function __construct(
-        $marketDataRetriever = null,
+        MarketDataRetriever $marketDataRetriever,
         ?ProposalPublisher $proposalPublisher = null,
         ?TimeService $timeService = null
     )
     {
-        $this->marketDataRetriever = $marketDataRetriever ?? new MarketStudyVendor();
+        $this->marketDataRetriever = $marketDataRetriever;
         $this->proposalPublisher = $proposalPublisher ?? new QuoteProposalPublisher();
         $this->timeService = $timeService ?? new SystemTimeService();
     }
