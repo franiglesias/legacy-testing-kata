@@ -3,6 +3,8 @@
 namespace Quotebot;
 
 use MarketStudyVendor;
+use Quotebot\Infrastructure\QuoteProposalPublisher;
+use Quotebot\Infrastructure\SystemTimeService;
 use Quotebot\Infrastructure\VendorDataRetriever;
 
 class Application
@@ -18,7 +20,14 @@ class Application
     public static function main(array $args = null)
     {
         $marketDataRetriever = new VendorDataRetriever(new MarketStudyVendor());
-        $blogAuctionTask = new BlogAuctionTask($marketDataRetriever);
+        $proposalPublisher = new QuoteProposalPublisher();
+        $timeService = new SystemTimeService();
+
+        $blogAuctionTask = new BlogAuctionTask(
+            $marketDataRetriever,
+            $proposalPublisher,
+            $timeService
+        );
 
         self::$bot = self::$bot ?? new AutomaticQuoteBot($blogAuctionTask);
         self::$bot->sendAllQuotes('FAST');

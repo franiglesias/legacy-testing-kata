@@ -2,12 +2,9 @@
 
 namespace Quotebot;
 
-use MarketStudyVendor;
 use Quotebot\Domain\MarketDataRetriever;
 use Quotebot\Domain\ProposalPublisher;
 use Quotebot\Domain\TimeService;
-use Quotebot\Infrastructure\QuoteProposalPublisher;
-use Quotebot\Infrastructure\SystemTimeService;
 
 class BlogAuctionTask
 {
@@ -20,13 +17,13 @@ class BlogAuctionTask
 
     public function __construct(
         MarketDataRetriever $marketDataRetriever,
-        ?ProposalPublisher $proposalPublisher = null,
-        ?TimeService $timeService = null
+        ProposalPublisher $proposalPublisher,
+        TimeService $timeService
     )
     {
         $this->marketDataRetriever = $marketDataRetriever;
-        $this->proposalPublisher = $proposalPublisher ?? new QuoteProposalPublisher();
-        $this->timeService = $timeService ?? new SystemTimeService();
+        $this->proposalPublisher = $proposalPublisher;
+        $this->timeService = $timeService;
     }
 
     public function priceAndPublish(string $blog, string $mode)
