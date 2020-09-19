@@ -2,13 +2,23 @@
 
 namespace Quotebot;
 
+use Quotebot\Domain\AdSpaceProvider;
+
 class AutomaticQuoteBot
 {
     private $blogAuctionTask;
+    /**
+     * @var AdSpaceProvider
+     */
+    private $adSpaceProvider;
 
-    public function __construct(BlogAuctionTask $blogAuctionTask)
+    public function __construct(
+        BlogAuctionTask $blogAuctionTask,
+        AdSpaceProvider $adSpaceProvider
+    )
     {
         $this->blogAuctionTask = $blogAuctionTask;
+        $this->adSpaceProvider = $adSpaceProvider;
     }
 
     public function sendAllQuotes(string $mode): void
@@ -21,6 +31,6 @@ class AutomaticQuoteBot
 
     protected function getBlogs(string $mode)
     {
-        return AdSpace::getAdSpaces($mode);
+        return $this->adSpaceProvider->getSpaces();
     }
 }

@@ -3,6 +3,7 @@
 namespace Quotebot;
 
 use MarketStudyVendor;
+use Quotebot\Infrastructure\BlogAdSpaceProvider;
 use Quotebot\Infrastructure\QuoteProposalPublisher;
 use Quotebot\Infrastructure\SystemTimeService;
 use Quotebot\Infrastructure\VendorDataRetriever;
@@ -29,7 +30,12 @@ class Application
             $timeService
         );
 
-        self::$bot = self::$bot ?? new AutomaticQuoteBot($blogAuctionTask);
+        $adSpaceProvider = new BlogAdSpaceProvider();
+
+        self::$bot = self::$bot ?? new AutomaticQuoteBot(
+                $blogAuctionTask,
+                $adSpaceProvider
+            );
         self::$bot->sendAllQuotes('FAST');
     }
 }

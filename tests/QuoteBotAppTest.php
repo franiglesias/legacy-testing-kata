@@ -6,7 +6,9 @@ use Quotebot\Application;
 use Quotebot\AutomaticQuoteBot;
 use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
+use Quotebot\Domain\AdSpaceProvider;
 use Quotebot\Domain\ProposalPublisher;
+use Quotebot\Domain\TimeService;
 
 class QuoteBotAppTest extends TestCase
 {
@@ -17,14 +19,19 @@ class QuoteBotAppTest extends TestCase
 
         $proposalPublisher = $this->createMock(ProposalPublisher::class);
 
-        $blogAuctionTask = new BlogAuctionTask($marketStudyVendor, $proposalPublisher);
+        $blogAuctionTask = new BlogAuctionTask(
+            $marketStudyVendor,
+            $proposalPublisher,
+            $timeService = $this->createMock(TimeService::class)
+        );
 
-        $automaticQuoteBot = new class($blogAuctionTask) extends AutomaticQuoteBot {
-            protected function getBlogs(string $mode): array
-            {
-                return ['Blog1', 'Blog2'];
-            }
-        };
+        $adSpaceProvider = $this->createMock(AdSpaceProvider::class);
+
+        $adSpaceProvider->method('getSpaces')->willReturn(['Blog1', 'Blog2']);
+        $automaticQuoteBot = new AutomaticQuoteBot(
+            $blogAuctionTask,
+            $adSpaceProvider
+        );
 
         Application::inject($automaticQuoteBot);
         Application::main();
