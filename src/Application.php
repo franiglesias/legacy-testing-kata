@@ -5,6 +5,8 @@ namespace Quotebot;
 use Dotenv\Dotenv;
 use MarketStudyVendor;
 use Quotebot\Infrastructure\BlogAdSpaceProvider;
+use Quotebot\Infrastructure\LocalAdSpaceProvider;
+use Quotebot\Infrastructure\LocalMarketDataRetriever;
 use Quotebot\Infrastructure\LocalQuoteProposalPublisher;
 use Quotebot\Infrastructure\QuoteProposalPublisher;
 use Quotebot\Infrastructure\SystemTimeService;
@@ -31,11 +33,15 @@ class Application
 
         if ($environment === 'LOCAL') {
             $proposalPublisher = new LocalQuoteProposalPublisher();
+            $adSpaceProvider = new LocalAdSpaceProvider();
+            $marketDataRetriever = new LocalMarketDataRetriever();
         } else {
             $proposalPublisher = new QuoteProposalPublisher();
+            $adSpaceProvider = new BlogAdSpaceProvider();
+            $marketDataRetriever = new VendorDataRetriever(new MarketStudyVendor());
+
         }
 
-        $marketDataRetriever = new VendorDataRetriever(new MarketStudyVendor());
         $timeService = new SystemTimeService();
 
         $blogAuctionTask = new BlogAuctionTask(
@@ -44,7 +50,6 @@ class Application
             $timeService
         );
 
-        $adSpaceProvider = new BlogAdSpaceProvider();
 
         self::$bot = self::$bot ?? new AutomaticQuoteBot(
                 $blogAuctionTask,
