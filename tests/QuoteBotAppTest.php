@@ -2,13 +2,13 @@
 
 namespace Tests\Quotebot;
 
-use Quotebot\Application;
-use Quotebot\AutomaticQuoteBot;
-use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\AdSpaceProvider;
+use Quotebot\Domain\AutomaticQuoteBot;
+use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\ProposalPublisher;
 use Quotebot\Domain\TimeService;
+use Quotebot\Infrastructure\EntryPoint\Application;
 
 class QuoteBotAppTest extends TestCase
 {

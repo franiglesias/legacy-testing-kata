@@ -1,8 +1,6 @@
 <?php
 
-namespace Quotebot;
-
-use Quotebot\Domain\AdSpaceProvider;
+namespace Quotebot\Domain;
 
 class AutomaticQuoteBot
 {

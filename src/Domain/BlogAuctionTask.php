@@ -1,10 +1,6 @@
 <?php
 
-namespace Quotebot;
-
-use Quotebot\Domain\MarketDataRetriever;
-use Quotebot\Domain\ProposalPublisher;
-use Quotebot\Domain\TimeService;
+namespace Quotebot\Domain;
 
 class BlogAuctionTask
 {

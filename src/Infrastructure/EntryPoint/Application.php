@@ -1,9 +1,11 @@
 <?php
 
-namespace Quotebot;
+namespace Quotebot\Infrastructure\EntryPoint;
 
 use Dotenv\Dotenv;
 use MarketStudyVendor;
+use Quotebot\Domain\AutomaticQuoteBot;
+use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Infrastructure\BlogAdSpaceProvider;
 use Quotebot\Infrastructure\LocalAdSpaceProvider;
 use Quotebot\Infrastructure\LocalMarketDataRetriever;
@@ -24,8 +26,9 @@ class Application
     /** main application method */
     public static function main(array $args = null)
     {
-        if (file_exists(__DIR__ . DIRECTORY_SEPARATOR. '../.env')) {
-            $dotenv = Dotenv::createImmutable(__DIR__.DIRECTORY_SEPARATOR.'..');
+        $projectRoot = __DIR__ . '/../../..';
+        if (file_exists($projectRoot. '/.env')) {
+            $dotenv = Dotenv::createImmutable($projectRoot);
             $dotenv->load();
         }
 

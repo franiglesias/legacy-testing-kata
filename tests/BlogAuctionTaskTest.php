@@ -4,6 +4,7 @@ namespace Quotebot;
 
 use Generator;
 use PHPUnit\Framework\TestCase;
+use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\MarketDataRetriever;
 use Quotebot\Domain\ProposalPublisher;
 use Quotebot\Domain\TimeService;

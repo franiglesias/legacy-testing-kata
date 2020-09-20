@@ -1,6 +1,6 @@
 <?php
 
-namespace Quotebot;
+namespace Quotebot\Infrastructure;
 
 class AdSpace
 {
