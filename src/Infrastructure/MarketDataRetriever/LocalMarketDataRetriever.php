@@ -1,10 +1,12 @@
 <?php
 
 
-namespace Quotebot\Infrastructure;
+namespace Quotebot\Infrastructure\MarketDataRetriever;
 
 
-class LocalMarketDataRetriever implements \Quotebot\Domain\MarketDataRetriever
+use Quotebot\Domain\MarketDataRetriever;
+
+class LocalMarketDataRetriever implements MarketDataRetriever
 {
 
     public function averagePrice(string $blog): float
