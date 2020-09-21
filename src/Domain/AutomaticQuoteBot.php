@@ -19,15 +19,16 @@ class AutomaticQuoteBot
         $this->adSpaceProvider = $adSpaceProvider;
     }
 
-    public function sendAllQuotes(string $mode): void
+    public function sendAllQuotes(string $rawMode): void
     {
-        $blogs = $this->getBlogs($mode);
+        $mode = new Mode($rawMode);
+        $blogs = $this->getBlogs();
         foreach ($blogs as $blog) {
             $this->blogAuctionTask->priceAndPublish($blog, $mode);
         }
     }
 
-    protected function getBlogs(string $mode)
+    protected function getBlogs()
     {
         return $this->adSpaceProvider->getSpaces();
     }
