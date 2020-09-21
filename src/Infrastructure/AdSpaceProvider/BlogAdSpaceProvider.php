@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Quotebot\Infrastructure;
+namespace Quotebot\Infrastructure\AdSpaceProvider;
 
 
 use Quotebot\Domain\AdSpaceProvider;

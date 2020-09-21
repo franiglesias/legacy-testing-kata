@@ -1,6 +1,6 @@
 <?php
 
-namespace Quotebot\Infrastructure;
+namespace Quotebot\Infrastructure\AdSpaceProvider;
 
 class TechBlogs
 {
