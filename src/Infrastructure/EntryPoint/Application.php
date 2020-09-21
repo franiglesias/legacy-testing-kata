@@ -8,10 +8,10 @@ use Quotebot\Domain\AutomaticQuoteBot;
 use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Infrastructure\AdSpaceProvider\BlogAdSpaceProvider;
 use Quotebot\Infrastructure\AdSpaceProvider\LocalAdSpaceProvider;
-use Quotebot\Infrastructure\LocalQuoteProposalPublisher;
 use Quotebot\Infrastructure\MarketDataRetriever\LocalMarketDataRetriever;
 use Quotebot\Infrastructure\MarketDataRetriever\VendorDataRetriever;
-use Quotebot\Infrastructure\QuoteProposalPublisher;
+use Quotebot\Infrastructure\ProposalPublisher\LocalQuoteProposalPublisher;
+use Quotebot\Infrastructure\ProposalPublisher\QuoteProposalPublisher;
 use Quotebot\Infrastructure\SystemTimeService;
 
 class Application

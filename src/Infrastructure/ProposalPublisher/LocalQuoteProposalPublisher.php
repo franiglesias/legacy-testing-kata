@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Quotebot\Infrastructure;
+namespace Quotebot\Infrastructure\ProposalPublisher;
 
 
 use Quotebot\Domain\ProposalPublisher;
