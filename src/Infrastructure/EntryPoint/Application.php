@@ -6,6 +6,7 @@ use Dotenv\Dotenv;
 use MarketStudyVendor;
 use Quotebot\Domain\AutomaticQuoteBot;
 use Quotebot\Domain\BlogAuctionTask;
+use Quotebot\Domain\CalculateProposal;
 use Quotebot\Infrastructure\AdSpaceProvider\BlogAdSpaceProvider;
 use Quotebot\Infrastructure\AdSpaceProvider\LocalAdSpaceProvider;
 use Quotebot\Infrastructure\MarketDataRetriever\LocalMarketDataRetriever;
@@ -47,10 +48,12 @@ class Application
 
         $timeService = new SystemTimeService();
 
+        $calculateProposal = new CalculateProposal($timeService);
+
         $blogAuctionTask = new BlogAuctionTask(
             $marketDataRetriever,
             $proposalPublisher,
-            $timeService
+            $calculateProposal
         );
 
 

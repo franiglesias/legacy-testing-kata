@@ -6,6 +6,9 @@ use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\AdSpaceProvider;
 use Quotebot\Domain\AutomaticQuoteBot;
 use Quotebot\Domain\BlogAuctionTask;
+use Quotebot\Domain\CalculateProposal;
+use Quotebot\Domain\MarketDataRetriever;
+use Quotebot\Domain\Price;
 use Quotebot\Domain\ProposalPublisher;
 use Quotebot\Domain\TimeService;
 use Quotebot\Infrastructure\EntryPoint\Application;
@@ -14,15 +17,16 @@ class QuoteBotAppTest extends TestCase
 {
     public function testShouldRun(): void
     {
-        $marketStudyVendor = $this->createMock(\MarketStudyVendor::class);
-        $marketStudyVendor->method('averagePrice')->willReturn(0);
+        $marketStudyVendor = $this->createMock(MarketDataRetriever::class);
+        $marketStudyVendor->method('averagePrice')->willReturn(new Price(0));
 
         $proposalPublisher = $this->createMock(ProposalPublisher::class);
+        $calculateProposal = new CalculateProposal($this->createMock(TimeService::class));
 
         $blogAuctionTask = new BlogAuctionTask(
             $marketStudyVendor,
             $proposalPublisher,
-            $timeService = $this->createMock(TimeService::class)
+            $calculateProposal
         );
 
         $adSpaceProvider = $this->createMock(AdSpaceProvider::class);

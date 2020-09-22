@@ -4,5 +4,5 @@ namespace Quotebot\Domain;
 
 interface MarketDataRetriever
 {
-    public function averagePrice(string $blog): float;
+    public function averagePrice(string $blog): Price;
 }

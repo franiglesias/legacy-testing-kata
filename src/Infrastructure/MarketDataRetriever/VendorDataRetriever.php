@@ -6,6 +6,7 @@ namespace Quotebot\Infrastructure\MarketDataRetriever;
 
 use MarketStudyVendor;
 use Quotebot\Domain\MarketDataRetriever;
+use Quotebot\Domain\Price;
 
 class VendorDataRetriever implements MarketDataRetriever
 {
@@ -19,8 +20,10 @@ class VendorDataRetriever implements MarketDataRetriever
         $this->marketStudyVendor = $marketStudyVendor;
     }
 
-    public function averagePrice(string $blog): float
+    public function averagePrice(string $blog): Price
     {
-        return $this->marketStudyVendor->averagePrice($blog);
+        $averagePrice = $this->marketStudyVendor->averagePrice($blog);
+
+        return new Price($averagePrice);
     }
 }

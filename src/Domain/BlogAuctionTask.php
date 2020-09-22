@@ -8,29 +8,28 @@ class BlogAuctionTask
     protected $marketDataRetriever;
     /** @var ProposalPublisher|null */
     private $proposalPublisher;
-    /** @var TimeService */
-    private $timeService;
+    /** @var CalculateProposal */
+    private $calculateProposal;
 
     public function __construct(
         MarketDataRetriever $marketDataRetriever,
         ProposalPublisher $proposalPublisher,
-        TimeService $timeService
+        CalculateProposal $calculateProposal
     )
     {
         $this->marketDataRetriever = $marketDataRetriever;
         $this->proposalPublisher = $proposalPublisher;
-        $this->timeService = $timeService;
+        $this->calculateProposal = $calculateProposal;
     }
 
     public function priceAndPublish(string $blog, Mode $mode)
     {
         $averagePrice = $this->marketDataRetriever->averagePrice($blog);
 
-        $proposal = $averagePrice + 2;
-
-        $proposal = $proposal % 2 === 0
-            ? $this->calculateEvenProposal($proposal)
-            : $this->calculateOddProposal($mode);
+        $proposal = $this->calculateProposal->fromPrice(
+            $averagePrice,
+            $mode
+        );
 
         $this->publishProposal($proposal);
     }
@@ -40,16 +39,5 @@ class BlogAuctionTask
         $this->proposalPublisher->publish($proposal);
     }
 
-    private function calculateEvenProposal(int $proposal): float
-    {
-        return 3.14 * $proposal;
-    }
 
-    private function calculateOddProposal(Mode $mode)
-    {
-        $timeInterval = $this->timeService->timeInterval();
-        return 3.15
-            * $mode->timeFactor()
-            * $timeInterval;
-    }
 }
