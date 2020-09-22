@@ -4,14 +4,14 @@ namespace Quotebot;
 
 use Generator;
 use PHPUnit\Framework\TestCase;
-use Quotebot\Domain\BlogAuctionTask;
-use Quotebot\Domain\CalculateProposal;
-use Quotebot\Domain\MarketDataRetriever;
-use Quotebot\Domain\Mode;
-use Quotebot\Domain\Price;
-use Quotebot\Domain\Proposal;
+use Quotebot\Application\BlogAuctionTask;
+use Quotebot\Domain\MarketData\MarketDataRetriever;
+use Quotebot\Domain\MarketData\Price;
+use Quotebot\Domain\Proposal\CalculateProposal;
+use Quotebot\Domain\Proposal\Mode;
+use Quotebot\Domain\Proposal\Proposal;
+use Quotebot\Domain\Proposal\TimeService;
 use Quotebot\Domain\ProposalPublisher;
-use Quotebot\Domain\TimeService;
 
 class BlogAuctionTaskTest extends TestCase
 {

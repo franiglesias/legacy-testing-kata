@@ -5,8 +5,8 @@ namespace Quotebot\Infrastructure\MarketDataRetriever;
 
 
 use MarketStudyVendor;
-use Quotebot\Domain\MarketDataRetriever;
-use Quotebot\Domain\Price;
+use Quotebot\Domain\MarketData\MarketDataRetriever;
+use Quotebot\Domain\MarketData\Price;
 
 class VendorDataRetriever implements MarketDataRetriever
 {

@@ -4,7 +4,7 @@
 namespace Quotebot\Infrastructure\ProposalPublisher;
 
 
-use Quotebot\Domain\Proposal;
+use Quotebot\Domain\Proposal\Proposal;
 use Quotebot\Domain\ProposalPublisher;
 
 class LocalQuoteProposalPublisher implements ProposalPublisher

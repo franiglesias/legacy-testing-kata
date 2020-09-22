@@ -1,8 +1,10 @@
 <?php
 
 
-namespace Quotebot\Domain;
+namespace Quotebot\Domain\Proposal;
 
+
+use Quotebot\Domain\MarketData\Price;
 
 class CalculateProposal
 {

@@ -4,8 +4,8 @@
 namespace Quotebot\Infrastructure\MarketDataRetriever;
 
 
-use Quotebot\Domain\MarketDataRetriever;
-use Quotebot\Domain\Price;
+use Quotebot\Domain\MarketData\MarketDataRetriever;
+use Quotebot\Domain\MarketData\Price;
 
 class LocalMarketDataRetriever implements MarketDataRetriever
 {

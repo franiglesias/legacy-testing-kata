@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Quotebot\Domain;
+namespace Quotebot\Domain\Proposal;
 
 
 use InvalidArgumentException;

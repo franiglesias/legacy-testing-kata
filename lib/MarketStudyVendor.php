@@ -1,7 +1,5 @@
 <?php
 
-use Quotebot\Domain\MarketDataRetriever;
-
 class MarketStudyVendor
 {
     public function averagePrice(string $blog): float

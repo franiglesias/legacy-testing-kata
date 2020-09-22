@@ -1,6 +1,6 @@
 <?php
 
-namespace Quotebot\Domain;
+namespace Quotebot\Domain\MarketData;
 
 interface MarketDataRetriever
 {

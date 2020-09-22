@@ -4,7 +4,7 @@
 namespace Quotebot\Infrastructure;
 
 
-use Quotebot\Domain\TimeService;
+use Quotebot\Domain\Proposal\TimeService;
 
 class SystemTimeService implements TimeService
 {

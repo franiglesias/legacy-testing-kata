@@ -4,9 +4,9 @@ namespace Quotebot\Infrastructure\EntryPoint;
 
 use Dotenv\Dotenv;
 use MarketStudyVendor;
-use Quotebot\Domain\AutomaticQuoteBot;
-use Quotebot\Domain\BlogAuctionTask;
-use Quotebot\Domain\CalculateProposal;
+use Quotebot\Application\AutomaticQuoteBot;
+use Quotebot\Application\BlogAuctionTask;
+use Quotebot\Domain\Proposal\CalculateProposal;
 use Quotebot\Infrastructure\AdSpaceProvider\BlogAdSpaceProvider;
 use Quotebot\Infrastructure\AdSpaceProvider\LocalAdSpaceProvider;
 use Quotebot\Infrastructure\MarketDataRetriever\LocalMarketDataRetriever;

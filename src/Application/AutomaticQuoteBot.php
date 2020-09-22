@@ -1,6 +1,9 @@
 <?php
 
-namespace Quotebot\Domain;
+namespace Quotebot\Application;
+
+use Quotebot\Domain\AdSpaceProvider;
+use Quotebot\Domain\Proposal\Mode;
 
 class AutomaticQuoteBot
 {

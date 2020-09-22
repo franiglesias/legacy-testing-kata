@@ -1,6 +1,11 @@
 <?php
 
-namespace Quotebot\Domain;
+namespace Quotebot\Application;
+
+use Quotebot\Domain\MarketData\MarketDataRetriever;
+use Quotebot\Domain\Proposal\CalculateProposal;
+use Quotebot\Domain\Proposal\Mode;
+use Quotebot\Domain\ProposalPublisher;
 
 class BlogAuctionTask
 {
