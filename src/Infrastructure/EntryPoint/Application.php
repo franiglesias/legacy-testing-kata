@@ -6,6 +6,8 @@ use Dotenv\Dotenv;
 use MarketStudyVendor;
 use Quotebot\Application\AutomaticQuoteBot;
 use Quotebot\Application\BlogAuctionTask;
+use Quotebot\Application\GenerateAllQuotes;
+use Quotebot\Application\GenerateAllQuotesCommandHandler;
 use Quotebot\Domain\Proposal\CalculateProposal;
 use Quotebot\Infrastructure\AdSpaceProvider\BlogAdSpaceProvider;
 use Quotebot\Infrastructure\AdSpaceProvider\LocalAdSpaceProvider;
@@ -61,6 +63,10 @@ class Application
                 $blogAuctionTask,
                 $adSpaceProvider
             );
-        self::$bot->sendAllQuotes('FAST');
+
+        $generateAllQuotes = new GenerateAllQuotes('FAST');
+        $handler = new GenerateAllQuotesCommandHandler(self::$bot);
+
+        ($handler)($generateAllQuotes);
     }
 }
