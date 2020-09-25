@@ -19,11 +19,11 @@ use Quotebot\Infrastructure\SystemTimeService;
 
 class Application
 {
-    private static $bot;
+    private static $handler;
 
-    public static function inject($bot)
+    public static function inject(GenerateAllQuotesCommandHandler $handler)
     {
-        self::$bot = $bot;
+        self::$handler = $handler;
     }
 
     /** main application method */
@@ -45,7 +45,6 @@ class Application
             $proposalPublisher = new QuoteProposalPublisher();
             $adSpaceProvider = new BlogAdSpaceProvider();
             $marketDataRetriever = new VendorDataRetriever(new MarketStudyVendor());
-
         }
 
         $timeService = new SystemTimeService();
@@ -59,14 +58,13 @@ class Application
         );
 
 
-        self::$bot = self::$bot ?? new AutomaticQuoteBot(
+        self::$handler = self::$handler ?? new GenerateAllQuotesCommandHandler(
                 $blogAuctionTask,
                 $adSpaceProvider
             );
 
         $generateAllQuotes = new GenerateAllQuotes('FAST');
-        $handler = new GenerateAllQuotesCommandHandler(self::$bot);
 
-        ($handler)($generateAllQuotes);
+        (self::$handler)($generateAllQuotes);
     }
 }

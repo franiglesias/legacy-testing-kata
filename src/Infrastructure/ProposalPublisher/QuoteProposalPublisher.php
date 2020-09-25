@@ -4,6 +4,7 @@
 namespace Quotebot\Infrastructure\ProposalPublisher;
 
 
+use Quotebot\Domain\Proposal\Proposal;
 use Quotebot\Domain\ProposalPublisher;
 
 class QuoteProposalPublisher implements ProposalPublisher
@@ -13,8 +14,8 @@ class QuoteProposalPublisher implements ProposalPublisher
     {
     }
 
-    public function publish(float $proposal): void
+    public function publish(Proposal $proposal): void
     {
-        \QuotePublisher::publish($proposal);
+        \QuotePublisher::publish($proposal->getProposal());
     }
 }
