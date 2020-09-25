@@ -5,6 +5,7 @@ namespace Tests\Quotebot;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Application\AutomaticQuoteBot;
 use Quotebot\Application\BlogAuctionTask;
+use Quotebot\Domain\AdSpace\Blog;
 use Quotebot\Domain\AdSpaceProvider;
 use Quotebot\Domain\MarketData\MarketDataRetriever;
 use Quotebot\Domain\MarketData\Price;
@@ -31,7 +32,12 @@ class QuoteBotAppTest extends TestCase
 
         $adSpaceProvider = $this->createMock(AdSpaceProvider::class);
 
-        $adSpaceProvider->method('getSpaces')->willReturn(['Blog1', 'Blog2']);
+        $adSpaceProvider
+            ->method('getSpaces')
+            ->willReturn([
+                new Blog('Blog1'),
+                new Blog('Blog2')
+            ]);
         $automaticQuoteBot = new AutomaticQuoteBot(
             $blogAuctionTask,
             $adSpaceProvider

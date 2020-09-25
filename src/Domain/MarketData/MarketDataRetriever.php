@@ -2,7 +2,9 @@
 
 namespace Quotebot\Domain\MarketData;
 
+use Quotebot\Domain\AdSpace\AdSpace;
+
 interface MarketDataRetriever
 {
-    public function averagePrice(string $blog): Price;
+    public function averagePrice(AdSpace $blog): Price;
 }

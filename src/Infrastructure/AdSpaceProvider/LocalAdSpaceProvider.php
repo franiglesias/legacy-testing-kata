@@ -4,16 +4,17 @@
 namespace Quotebot\Infrastructure\AdSpaceProvider;
 
 
+use Quotebot\Domain\AdSpace\Blog;
 use Quotebot\Domain\AdSpaceProvider;
 
 class LocalAdSpaceProvider implements AdSpaceProvider
 {
 
-    public function getSpaces()
+    public function getSpaces(): array
     {
         return [
-            'TalkingBit',
-            'La semana PHP'
+            new Blog('TalkingBit'),
+            new Blog('La semana PHP')
         ];
     }
 }

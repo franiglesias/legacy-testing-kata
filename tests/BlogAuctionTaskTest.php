@@ -5,6 +5,7 @@ namespace Quotebot;
 use Generator;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Application\BlogAuctionTask;
+use Quotebot\Domain\AdSpace\Blog;
 use Quotebot\Domain\MarketData\MarketDataRetriever;
 use Quotebot\Domain\MarketData\Price;
 use Quotebot\Domain\Proposal\CalculateProposal;
@@ -45,7 +46,7 @@ class BlogAuctionTaskTest extends TestCase
 
     public function casesProvider(): Generator
     {
-        yield 'Odd path basic calculation' =>  [new Price(0), new Mode('SLOW'), new Proposal(6.28)];
+        yield 'Odd path basic calculation' => [new Price(0), new Mode('SLOW'), new Proposal(6.28)];
         yield 'Even path basic calculation' => [new Price(1), new Mode('SLOW'), new Proposal(6.30)];
     }
 
@@ -66,7 +67,7 @@ class BlogAuctionTaskTest extends TestCase
 
     protected function whenIsPricedWithMode($mode): void
     {
-        $this->blogAuctionTask->priceAndPublish('blog', $mode);
+        $this->blogAuctionTask->priceAndPublish(new Blog('blog'), $mode);
     }
 
     private function givenTimeIntervalIs($interval): void

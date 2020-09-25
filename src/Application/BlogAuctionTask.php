@@ -2,6 +2,7 @@
 
 namespace Quotebot\Application;
 
+use Quotebot\Domain\AdSpace\AdSpace;
 use Quotebot\Domain\MarketData\MarketDataRetriever;
 use Quotebot\Domain\Proposal\CalculateProposal;
 use Quotebot\Domain\Proposal\Mode;
@@ -27,7 +28,7 @@ class BlogAuctionTask
         $this->calculateProposal = $calculateProposal;
     }
 
-    public function priceAndPublish(string $blog, Mode $mode)
+    public function priceAndPublish(AdSpace $blog, Mode $mode): void
     {
         $averagePrice = $this->marketDataRetriever->averagePrice($blog);
 

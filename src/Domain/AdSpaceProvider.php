@@ -6,5 +6,5 @@ namespace Quotebot\Domain;
 
 interface AdSpaceProvider
 {
-    public function getSpaces();
+    public function getSpaces(): array;
 }
