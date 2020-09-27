@@ -5,10 +5,10 @@ namespace Quotebot\Infrastructure\EntryPoint;
 use Dotenv\Dotenv;
 use MarketStudyVendor;
 use Quotebot\Application\AutomaticQuoteBot;
-use Quotebot\Application\BlogAuctionTask;
 use Quotebot\Application\GenerateAllQuotes;
 use Quotebot\Application\GenerateAllQuotesCommandHandler;
 use Quotebot\Domain\Proposal\CalculateProposal;
+use Quotebot\Domain\Proposal\GenerateProposal;
 use Quotebot\Infrastructure\AdSpaceProvider\BlogAdSpaceProvider;
 use Quotebot\Infrastructure\AdSpaceProvider\LocalAdSpaceProvider;
 use Quotebot\Infrastructure\MarketDataRetriever\LocalMarketDataRetriever;
@@ -51,7 +51,7 @@ class Application
 
         $calculateProposal = new CalculateProposal($timeService);
 
-        $blogAuctionTask = new BlogAuctionTask(
+        $blogAuctionTask = new GenerateProposal(
             $marketDataRetriever, $calculateProposal
         );
         

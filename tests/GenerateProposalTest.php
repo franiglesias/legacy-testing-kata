@@ -4,16 +4,16 @@ namespace Quotebot;
 
 use Generator;
 use PHPUnit\Framework\TestCase;
-use Quotebot\Application\BlogAuctionTask;
 use Quotebot\Domain\AdSpace\Blog;
 use Quotebot\Domain\MarketData\MarketDataRetriever;
 use Quotebot\Domain\MarketData\Price;
 use Quotebot\Domain\Proposal\CalculateProposal;
+use Quotebot\Domain\Proposal\GenerateProposal;
 use Quotebot\Domain\Proposal\Mode;
 use Quotebot\Domain\Proposal\Proposal;
 use Quotebot\Domain\Proposal\TimeService;
 
-class BlogAuctionTaskTest extends TestCase
+class GenerateProposalTest extends TestCase
 {
 
     private $marketDataRetriever;
@@ -25,7 +25,7 @@ class BlogAuctionTaskTest extends TestCase
         $this->marketDataRetriever = $this->createMock(MarketDataRetriever::class);
         $this->timeService = $this->createMock(TimeService::class);
 
-        $this->blogAuctionTask = new BlogAuctionTask(
+        $this->blogAuctionTask = new GenerateProposal(
             $this->marketDataRetriever,
             new CalculateProposal($this->timeService)
         );
@@ -54,7 +54,7 @@ class BlogAuctionTaskTest extends TestCase
 
     protected function thenAProposalIsCalculatedOf($mode, $proposal): void
     {
-        $generated = $this->blogAuctionTask->generateProposal(new Blog('blog'), $mode);
+        $generated = $this->blogAuctionTask->forAdSpace(new Blog('blog'), $mode);
 
         self::assertEquals($proposal, $generated);
     }

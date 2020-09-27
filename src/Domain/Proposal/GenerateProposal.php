@@ -1,14 +1,11 @@
 <?php
 
-namespace Quotebot\Application;
+namespace Quotebot\Domain\Proposal;
 
 use Quotebot\Domain\AdSpace\AdSpace;
 use Quotebot\Domain\MarketData\MarketDataRetriever;
-use Quotebot\Domain\Proposal\CalculateProposal;
-use Quotebot\Domain\Proposal\Mode;
-use Quotebot\Domain\ProposalPublisher;
 
-class BlogAuctionTask
+class GenerateProposal
 {
     /** @var MarketDataRetriever */
     protected $marketDataRetriever;
@@ -23,7 +20,7 @@ class BlogAuctionTask
         $this->calculateProposal = $calculateProposal;
     }
 
-    public function generateProposal(AdSpace $blog, Mode $mode): \Quotebot\Domain\Proposal\Proposal
+    public function forAdSpace(AdSpace $blog, Mode $mode): \Quotebot\Domain\Proposal\Proposal
     {
         $averagePrice = $this->marketDataRetriever->averagePrice($blog);
 
