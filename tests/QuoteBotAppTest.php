@@ -40,7 +40,8 @@ class QuoteBotAppTest extends TestCase
 
         $commandHandler = new GenerateAllQuotesCommandHandler(
             $blogAuctionTask,
-            $adSpaceProvider
+            $adSpaceProvider,
+            $proposalPublisher
         );
 
         Application::inject($commandHandler);

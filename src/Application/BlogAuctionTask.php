@@ -30,20 +30,23 @@ class BlogAuctionTask
 
     public function priceAndPublish(AdSpace $blog, Mode $mode): void
     {
-        $averagePrice = $this->marketDataRetriever->averagePrice($blog);
-
-        $proposal = $this->calculateProposal->fromPrice(
-            $averagePrice,
-            $mode
-        );
+        $proposal = $this->generateProposal($blog, $mode);
 
         $this->publishProposal($proposal);
     }
 
-    protected function publishProposal($proposal): void
+    public function publishProposal($proposal): void
     {
         $this->proposalPublisher->publish($proposal);
     }
 
+    public function generateProposal(AdSpace $blog, Mode $mode): \Quotebot\Domain\Proposal\Proposal
+    {
+        $averagePrice = $this->marketDataRetriever->averagePrice($blog);
 
+        return $this->calculateProposal->fromPrice(
+            $averagePrice,
+            $mode
+        );
+    }
 }

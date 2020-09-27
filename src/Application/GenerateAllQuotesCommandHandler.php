@@ -6,6 +6,7 @@ namespace Quotebot\Application;
 
 use Quotebot\Domain\AdSpaceProvider;
 use Quotebot\Domain\Proposal\Mode;
+use Quotebot\Domain\ProposalPublisher;
 
 class GenerateAllQuotesCommandHandler
 {
@@ -17,13 +18,20 @@ class GenerateAllQuotesCommandHandler
      * @var AdSpaceProvider
      */
     private $adSpaceProvider;
+    /**
+     * @var ProposalPublisher
+     */
+    private $proposalPublisher;
 
     public function __construct(BlogAuctionTask $blogAuctionTask,
-                                AdSpaceProvider $adSpaceProvider)
+                                AdSpaceProvider $adSpaceProvider,
+                                ProposalPublisher $proposalPublisher
+)
     {
 
         $this->blogAuctionTask = $blogAuctionTask;
         $this->adSpaceProvider = $adSpaceProvider;
+        $this->proposalPublisher = $proposalPublisher;
     }
 
     public function __invoke(GenerateAllQuotes $generateAllQuotes): void
@@ -31,7 +39,8 @@ class GenerateAllQuotesCommandHandler
         $mode = new Mode($generateAllQuotes->getRawMode());
         $blogs = $this->adSpaceProvider->getSpaces();
         foreach ($blogs as $blog) {
-            $this->blogAuctionTask->priceAndPublish($blog, $mode);
+            $proposal = $this->blogAuctionTask->generateProposal($blog, $mode);
+            $this->proposalPublisher->publish($proposal);
         }
     }
 }

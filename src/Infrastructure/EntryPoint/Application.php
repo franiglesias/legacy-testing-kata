@@ -56,11 +56,11 @@ class Application
             $proposalPublisher,
             $calculateProposal
         );
-
-
+        
         self::$handler = self::$handler ?? new GenerateAllQuotesCommandHandler(
                 $blogAuctionTask,
-                $adSpaceProvider
+                $adSpaceProvider,
+                $proposalPublisher
             );
 
         $generateAllQuotes = new GenerateAllQuotes('FAST');
