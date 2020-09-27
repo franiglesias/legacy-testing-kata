@@ -12,25 +12,21 @@ use Quotebot\Domain\Proposal\CalculateProposal;
 use Quotebot\Domain\Proposal\Mode;
 use Quotebot\Domain\Proposal\Proposal;
 use Quotebot\Domain\Proposal\TimeService;
-use Quotebot\Domain\ProposalPublisher;
 
 class BlogAuctionTaskTest extends TestCase
 {
 
     private $marketDataRetriever;
-    private $proposalPublisher;
     private $timeService;
     private $blogAuctionTask;
 
     protected function setUp(): void
     {
         $this->marketDataRetriever = $this->createMock(MarketDataRetriever::class);
-        $this->proposalPublisher = $this->createMock(ProposalPublisher::class);
         $this->timeService = $this->createMock(TimeService::class);
 
         $this->blogAuctionTask = new BlogAuctionTask(
             $this->marketDataRetriever,
-            $this->proposalPublisher,
             new CalculateProposal($this->timeService)
         );
     }
@@ -40,8 +36,7 @@ class BlogAuctionTaskTest extends TestCase
     {
         $this->givenTimeIntervalIs(1);
         $this->givenAnAveragePrice($averagePrice);
-        $this->thenAProposalIsSentOf($proposal);
-        $this->whenIsPricedWithMode($mode);
+        $this->thenAProposalIsCalculatedOf($mode, $proposal);
     }
 
     public function casesProvider(): Generator
@@ -57,17 +52,11 @@ class BlogAuctionTaskTest extends TestCase
             ->willReturn($averagePrice);
     }
 
-    protected function thenAProposalIsSentOf($proposal): void
+    protected function thenAProposalIsCalculatedOf($mode, $proposal): void
     {
-        $this->proposalPublisher
-            ->expects(self::once())
-            ->method('publish')
-            ->with($proposal);
-    }
+        $generated = $this->blogAuctionTask->generateProposal(new Blog('blog'), $mode);
 
-    protected function whenIsPricedWithMode($mode): void
-    {
-        $this->blogAuctionTask->priceAndPublish(new Blog('blog'), $mode);
+        self::assertEquals($proposal, $generated);
     }
 
     private function givenTimeIntervalIs($interval): void

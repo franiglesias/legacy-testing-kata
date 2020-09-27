@@ -52,9 +52,7 @@ class Application
         $calculateProposal = new CalculateProposal($timeService);
 
         $blogAuctionTask = new BlogAuctionTask(
-            $marketDataRetriever,
-            $proposalPublisher,
-            $calculateProposal
+            $marketDataRetriever, $calculateProposal
         );
         
         self::$handler = self::$handler ?? new GenerateAllQuotesCommandHandler(

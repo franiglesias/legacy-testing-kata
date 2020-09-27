@@ -12,32 +12,15 @@ class BlogAuctionTask
 {
     /** @var MarketDataRetriever */
     protected $marketDataRetriever;
-    /** @var ProposalPublisher|null */
-    private $proposalPublisher;
     /** @var CalculateProposal */
     private $calculateProposal;
 
     public function __construct(
-        MarketDataRetriever $marketDataRetriever,
-        ProposalPublisher $proposalPublisher,
-        CalculateProposal $calculateProposal
+        MarketDataRetriever $marketDataRetriever, CalculateProposal $calculateProposal
     )
     {
         $this->marketDataRetriever = $marketDataRetriever;
-        $this->proposalPublisher = $proposalPublisher;
         $this->calculateProposal = $calculateProposal;
-    }
-
-    public function priceAndPublish(AdSpace $blog, Mode $mode): void
-    {
-        $proposal = $this->generateProposal($blog, $mode);
-
-        $this->publishProposal($proposal);
-    }
-
-    public function publishProposal($proposal): void
-    {
-        $this->proposalPublisher->publish($proposal);
     }
 
     public function generateProposal(AdSpace $blog, Mode $mode): \Quotebot\Domain\Proposal\Proposal

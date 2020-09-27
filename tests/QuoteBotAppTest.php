@@ -25,9 +25,7 @@ class QuoteBotAppTest extends TestCase
         $calculateProposal = new CalculateProposal($this->createMock(TimeService::class));
 
         $blogAuctionTask = new BlogAuctionTask(
-            $marketStudyVendor,
-            $proposalPublisher,
-            $calculateProposal
+            $marketStudyVendor, $calculateProposal
         );
 
         $adSpaceProvider = $this->createMock(AdSpaceProvider::class);
