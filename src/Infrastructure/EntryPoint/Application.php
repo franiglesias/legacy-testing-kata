@@ -61,13 +61,21 @@ class Application
                 $proposalPublisher
             );
 
-        $startingWithT = static function (AdSpace $space) {
-            return $space->startsWith('T');
-        };
+        $criteria = $_ENV['SPACES_SELECTION'];
+
+        if (!$criteria) {
+            $specification = static function (AdSpace $space) {
+                return true;
+            };
+        } else {
+            $specification = static function (AdSpace $space) use ($criteria) {
+                return $space->startsWith($criteria);
+            };
+        }
 
         $generateAllQuotes = new GenerateAllQuotes(
             'FAST',
-            $startingWithT
+            $specification
         );
 
         (self::$handler)($generateAllQuotes);

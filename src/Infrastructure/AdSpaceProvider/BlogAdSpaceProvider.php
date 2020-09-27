@@ -31,6 +31,8 @@ class BlogAdSpaceProvider implements AdSpaceProvider
         }, $rawData);
 
         AdSpacesCache::cache('blogs', $blogs);
+
+        return $blogs;
     }
 
     public function findSpaces(callable $specification): array
