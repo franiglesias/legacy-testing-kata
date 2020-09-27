@@ -4,9 +4,9 @@ namespace Quotebot\Infrastructure\EntryPoint;
 
 use Dotenv\Dotenv;
 use MarketStudyVendor;
-use Quotebot\Application\AutomaticQuoteBot;
 use Quotebot\Application\GenerateAllQuotes;
 use Quotebot\Application\GenerateAllQuotesCommandHandler;
+use Quotebot\Domain\AdSpace\AdSpace;
 use Quotebot\Domain\Proposal\CalculateProposal;
 use Quotebot\Domain\Proposal\GenerateProposal;
 use Quotebot\Infrastructure\AdSpaceProvider\BlogAdSpaceProvider;
@@ -30,7 +30,7 @@ class Application
     public static function main(array $args = null)
     {
         $projectRoot = __DIR__ . '/../../..';
-        if (file_exists($projectRoot. '/.env')) {
+        if (file_exists($projectRoot . '/.env')) {
             $dotenv = Dotenv::createImmutable($projectRoot);
             $dotenv->load();
         }
@@ -54,14 +54,21 @@ class Application
         $blogAuctionTask = new GenerateProposal(
             $marketDataRetriever, $calculateProposal
         );
-        
+
         self::$handler = self::$handler ?? new GenerateAllQuotesCommandHandler(
                 $blogAuctionTask,
                 $adSpaceProvider,
                 $proposalPublisher
             );
 
-        $generateAllQuotes = new GenerateAllQuotes('FAST');
+        $startingWithT = static function (AdSpace $space) {
+            return $space->startsWith('T');
+        };
+
+        $generateAllQuotes = new GenerateAllQuotes(
+            'FAST',
+            $startingWithT
+        );
 
         (self::$handler)($generateAllQuotes);
     }

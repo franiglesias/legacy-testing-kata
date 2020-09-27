@@ -17,4 +17,11 @@ class LocalAdSpaceProvider implements AdSpaceProvider
             new Blog('La semana PHP')
         ];
     }
+
+    public function findSpaces(callable $specification): array
+    {
+        $spaces = $this->getSpaces();
+
+        return array_filter($spaces, $specification);
+    }
 }

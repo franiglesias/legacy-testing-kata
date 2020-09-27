@@ -6,8 +6,8 @@ namespace Quotebot\Domain\AdSpace;
 
 abstract class AdSpace
 {
-    private $name;
-    private $id;
+    protected $name;
+    protected $id;
 
     public function __construct(string $name)
     {
@@ -25,4 +25,8 @@ abstract class AdSpace
         return $this->id;
     }
 
+    public function startsWith(string $start): bool
+    {
+        return strpos($this->name, $start, 0) === 0;
+    }
 }

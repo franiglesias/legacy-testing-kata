@@ -4,6 +4,7 @@
 namespace Quotebot\Infrastructure\AdSpaceProvider;
 
 
+use Quotebot\Domain\AdSpace\AdSpace;
 use Quotebot\Domain\AdSpace\Blog;
 use Quotebot\Domain\AdSpaceProvider;
 
@@ -30,5 +31,12 @@ class BlogAdSpaceProvider implements AdSpaceProvider
         }, $rawData);
 
         AdSpacesCache::cache('blogs', $blogs);
+    }
+
+    public function findSpaces(callable $specification): array
+    {
+        $spaces = $this->getSpaces();
+
+        return array_filter($spaces, $specification);
     }
 }
