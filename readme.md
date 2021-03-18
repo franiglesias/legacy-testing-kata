@@ -1,5 +1,7 @@
-legacy-testing-kata-java
+Legacy testing kata
 ===
+
+## Notes from the original README:
 
 A legacy codebase that resist a bit testing, by Cyrille Martraire.
 
@@ -16,6 +18,8 @@ This code draws on a C# code kata authored by my distinguished colleague Nicolas
 This kata is very interesting to practice several refactor techniques. 
 
 At first, you won't be able to test it, so you should relay on secure refactor techniques as provided by your IDE.
+
+One interesting suggestion is to keep two enviornments for this exercise: one that simulates a **production** setting, and one for the **development/testing**. This way, you can introduce changes and see how they would affect the production side. You should commit **small sets of changes** that doesn't break the application in production environment.
 
 ## Notes on PHP version
 
@@ -97,7 +101,7 @@ Select phpunit.xml as default configuration file.
 
 
 
---
+## Where to start? Extracted notes from the original
 
 If you hesitate where to start, here are some of the tricky bits that make it hard to test:
 
