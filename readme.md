@@ -1,5 +1,13 @@
-Legacy testing kata
+QuoteBot legacy kata
 ===
+
+This is a code exercise to practice how to manage and improve legacy code. It's not very big, and you can make it evolve progressively:
+
+* Make it run.
+* Make it testable and create some tests.
+* Refactor and fix.
+* Make it evolve, so it becomes a well-structured application.
+* Make it Hexagonal :-)
 
 ## Notes from the original README:
 
@@ -17,9 +25,9 @@ This code draws on a C# code kata authored by my distinguished colleague Nicolas
 
 This kata is very interesting to practice several refactor techniques. 
 
-At first, you won't be able to test it, so you should relay on secure refactor techniques as provided by your IDE.
+At first, you won't be able to test it, so you should rely on secure refactor techniques as provided by your IDE.
 
-One interesting suggestion is to keep two enviornments for this exercise: one that simulates a **production** setting, and one for the **development/testing**. This way, you can introduce changes and see how they would affect the production side. You should commit **small sets of changes** that doesn't break the application in production environment.
+One interesting suggestion is to define and keep two environments for this exercise: one that simulates a **production** setting, and one for the **development/testing**. This way, you can introduce changes and see how they would affect the production side. You should commit **small sets of changes** that doesn't break the application in production environment.
 
 ## Notes on PHP version
 
@@ -30,22 +38,22 @@ To try the code, clone or download this repo.
 Then, run composer:
 
 ```
-    composer install
+composer install
 ```
 
-This will install PHPUnit. PSR4 autoload for the `QuoteBot` namespace and `lib` folder is loaded via classmap.
+This will install PHPUnit. PSR4 autoload for the `QuoteBot` namespace and `lib` folder uses classmap.
 
-And then, execute the run.php script to see how this program works (to say something):
+Finally, execute the run.php script to see how this program works (to say something):
 
 ```
-    php run.php
+php run.php
 ```
 
 Or use the IDE facilities to run.
 
 **Important note:** you must not touch the `lib` folder, given it is considered a vendor. 
 
-## Notes on practicing this kata inside docker
+## Notes on practicing this kata using docker
 
 Start containers. First time docker needs to download images, so it could take a while.
 
@@ -65,9 +73,15 @@ Run composer install inside de container or
 docker exec -it quotebot composer install
 ```
 
+Run the application
+
+```
+docker exec -it quotebot php run.php
+```
+
 ## Notes on configuring PHPStorm with the dockerized environment
 
-First of all, start up docker containers.
+First, start up docker containers.
 
 ```
 docker-compose up
@@ -100,7 +114,6 @@ PHPUnit Library from composer autoloader. Path to script should be: vendor/autol
 Select phpunit.xml as default configuration file.
 
 
-
 ## Where to start? Extracted notes from the original
 
 If you hesitate where to start, here are some of the tricky bits that make it hard to test:
@@ -115,7 +128,7 @@ Implementation issues:
 * Very slow service
 * Hidden dependency to a license key in env variable
 * Random return value -> non-deterministic test
-* Dialog poping up prompting for user input
+* Dialog popping up prompting for user input
 
 Other tricks:
 
