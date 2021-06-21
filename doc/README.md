@@ -1043,3 +1043,385 @@ class BlogAuctionTask
 ```
 
 Finally, all these changes deserve a commit.
+
+## Improving BlogAuctionTask design
+
+`BlogAuctionTask` holds a lot of logic. It is easy to see that we can organize code better and move some responsibilities to other clases. Where to start? Let's review some interesting points:
+
+* TimeFactor calculation, for example, can be easily isolated. In fact, it strongly suggests a Value Object to represent all the modes, and their associated time factors.
+* We have a global state dependency because we are instantiating DateTime.
+
+## TimeFactor isolation
+
+We will start with TimeFactor isolation. It is more important to address the problem with the system clock dependency, but moving the calculation to its own method is safe and will help us to learn how to manage it.
+
+```php
+<?php
+
+namespace Quotebot;
+
+use Quotebot\Domain\MarketDataProvider;
+use Quotebot\Domain\Publisher;
+
+class BlogAuctionTask
+{
+	private MarketDataProvider $marketDataRetriever;
+	private Publisher $publisher;
+
+	public function __construct(
+		MarketDataProvider $marketStudyVendor,
+		Publisher $publisher
+	) {
+		$this->marketDataRetriever = $marketStudyVendor;
+		$this->publisher           = $publisher;
+	}
+
+    public function priceAndPublish(string $blog, string $mode): void
+	{
+		$avgPrice = $this->averagePrice($blog);
+
+		// FIXME should actually be +2 not +1
+
+        $proposal = $avgPrice + 1;
+        
+		$timeFactor = $this->timeFactor($mode);
+
+		$proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
+            * $timeFactor
+            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
+
+		$this->publishProposal($proposal);
+	}
+
+	protected function publishProposal($proposal): void
+	{
+		$this->publisher->publishProposal($proposal);
+	}
+
+	protected function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+
+	protected function timeFactor(string $mode): int
+	{
+		$timeFactor = 1;
+
+		if ($mode === 'SLOW') {
+			$timeFactor = 2;
+		}
+
+		if ($mode === 'MEDIUM') {
+			$timeFactor = 4;
+		}
+
+		if ($mode === 'FAST') {
+			$timeFactor = 8;
+		}
+
+		if ($mode === 'ULTRAFAST') {
+			$timeFactor = 13;
+		}
+
+		return $timeFactor;
+	}
+}
+```
+
+## Managing global state dependencies
+
+Inside BlogAuctionTask we require some timestamps in order to calculate proposals. This makes testing difficult because of the nondeterministic results. The best approach is to isolate and extract the dependency to an external Clock Service that we can mock in tests.
+
+This is the part of the code that we want to address:
+
+```php
+$proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
+    * $timeFactor
+    * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
+```
+
+First, a little cosmetic reorganization to understand what's going on here:
+
+```php
+$proposal = $proposal % 2 === 0 
+    ? 3.14 * $proposal 
+    : 3.15 * $timeFactor * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
+```
+
+So, we have two ways for the proposal calculation. We will start by isolating the dependency in its own method. This will make the code easier to read and understand:
+
+```php
+    $proposal = $proposal % 2 === 0 
+        ? 3.14 * $proposal 
+        : 3.15 * $timeFactor * $this->timeDiff('2000-1-1');
+
+    $this->publishProposal($proposal);
+}
+
+private function timeDiff(string $from): int
+{
+    return (new \DateTime())->getTimestamp()
+        - (new \DateTime($from))->getTimestamp();
+}
+```
+
+Now, it is easy to see that we want a timestamp diff since an arbitrary date. We rename the method to reflect that:
+
+```php
+	private function timestampDiff(string $since): int
+	{
+		return (new \DateTime())->getTimestamp()
+			- (new \DateTime($since))->getTimestamp();
+	}
+```
+
+We can now extract this method to a new class implementing a ClockService interface. The new class can be called `SystemClockService`. By using the automated refactor of PhpStorm we get this:
+
+```php
+namespace Quotebot;
+
+use Quotebot\Domain\MarketDataProvider;
+use Quotebot\Domain\Publisher;
+use Quotebot\Infrastructure\SystemClockService;
+
+class BlogAuctionTask
+{
+	private MarketDataProvider $marketDataRetriever;
+	private Publisher $publisher;
+	private SystemClockService $systemClockService;
+
+	public function __construct(
+		MarketDataProvider $marketStudyVendor,
+		Publisher $publisher
+	) {
+		$this->marketDataRetriever = $marketStudyVendor;
+		$this->publisher           = $publisher;
+		$this->systemClockService  = new SystemClockService;
+	}
+
+	public function priceAndPublish(string $blog, string $mode): void
+	{
+		$avgPrice = $this->averagePrice($blog);
+
+		// FIXME should actually be +2 not +1
+
+		$proposal = $avgPrice + 1;
+
+		$timeFactor = $this->timeFactor($mode);
+
+		$proposal = $proposal % 2 === 0
+			? 3.14 * $proposal
+			: 3.15 * $timeFactor * $this->timestampDiff('2000-1-1');
+
+		$this->publishProposal($proposal);
+	}
+
+	private function timestampDiff(string $since): int
+	{
+		return $this->systemClockService->timestampDiff($since);
+	}
+
+	protected function publishProposal($proposal): void
+	{
+		$this->publisher->publishProposal($proposal);
+	}
+
+	protected function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+
+	protected function timeFactor(string $mode): int
+	{
+		$timeFactor = 1;
+
+		if ($mode === 'SLOW') {
+			$timeFactor = 2;
+		}
+
+		if ($mode === 'MEDIUM') {
+			$timeFactor = 4;
+		}
+
+		if ($mode === 'FAST') {
+			$timeFactor = 8;
+		}
+
+		if ($mode === 'ULTRAFAST') {
+			$timeFactor = 13;
+		}
+
+		return $timeFactor;
+	}
+}
+```
+
+Now, we will use the automatic refactoring to extract the interface:
+
+```php
+namespace Quotebot\Domain;
+
+interface ClockService
+{
+	public function timestampDiff(string $since): int;
+}
+```
+
+We verify that ApplicationTest is passing. Our next step is to inject the dependency and invert it. We will need to make changes in the test and in production code. This will be **run.php**:
+
+```php
+require 'vendor/autoload.php';
+
+use Quotebot\Application;
+use Quotebot\AutomaticQuoteBot;
+use Quotebot\BlogAuctionTask;
+use Quotebot\Infrastructure\SystemClockService;
+use Quotebot\Infrastructure\VendorMarketDataProvider;
+use Quotebot\Infrastructure\VendorQuotePublisher;
+
+$marketDataProvider = new VendorMarketDataProvider(new MarketStudyVendor);
+$publisher          = new VendorQuotePublisher;
+$clockService       = new SystemClockService;
+$blogAuctionTask    = new BlogAuctionTask(
+	$marketDataProvider,
+	$publisher,
+	$clockService
+);
+$automaticQuoteBot  = new AutomaticQuoteBot($blogAuctionTask);
+
+Application::injectBot($automaticQuoteBot);
+Application::main();
+```
+
+The test:
+
+```php
+class ApplicationTest extends TestCase
+{
+	/** @test */
+	public function shouldPublishOneProposalForEachBlog(): void
+	{
+		$marketDataProvider = $this->createMock(MarketDataProvider::class);
+		$marketDataProvider->method('averagePrice')->willReturn(0.0);
+
+		$publisherSpy    = new PublisherSpy;
+		
+		$clockService    = $this->createMock(ClockService::class);
+		$clockService->method('timestampDiff')->willReturn(0);
+		
+		$blogAuctionTask = new BlogAuctionTask(
+			$marketDataProvider,
+			$publisherSpy,
+			$clockService
+		);
+		$quoteBot        = $this->buildQuoteBot($blogAuctionTask, ['Blog 1', 'Blog 2']);
+
+		Application::injectBot($quoteBot);
+		Application::main();
+
+		self::assertCount(2, $publisherSpy->proposals());
+	}
+
+	private function buildQuoteBot(BlogAuctionTask $blogAuctionTask, array $blogs): AutomaticQuoteBot
+	{
+		return new class($blogAuctionTask, $blogs) extends AutomaticQuoteBot {
+			private array $blogs;
+
+			public function __construct(BlogAuctionTask $blogAuctionTask, array $blogs)
+			{
+				$this->blogs = $blogs;
+				parent::__construct($blogAuctionTask);
+			}
+
+			protected function getBlogs(string $mode): array
+			{
+				return $this->blogs;
+			}
+		};
+	}
+}
+```
+
+Here is the BlogAuctionTask class with the dependency injected:
+
+```php
+namespace Quotebot;
+
+use Quotebot\Domain\ClockService;
+use Quotebot\Domain\MarketDataProvider;
+use Quotebot\Domain\Publisher;
+
+class BlogAuctionTask
+{
+	private MarketDataProvider $marketDataRetriever;
+	private Publisher $publisher;
+	private ClockService $clockService;
+
+	public function __construct(
+		MarketDataProvider $marketStudyVendor,
+		Publisher $publisher,
+		ClockService $clockService
+	) {
+		$this->marketDataRetriever = $marketStudyVendor;
+		$this->publisher           = $publisher;
+		$this->clockService        = $clockService;
+	}
+
+	public function priceAndPublish(string $blog, string $mode): void
+	{
+		$avgPrice = $this->averagePrice($blog);
+
+		// FIXME should actually be +2 not +1
+
+		$proposal = $avgPrice + 1;
+
+		$timeFactor = $this->timeFactor($mode);
+
+		$proposal = $proposal % 2 === 0
+			? 3.14 * $proposal
+			: 3.15 * $timeFactor * $this->timestampDiff('2000-1-1');
+
+		$this->publishProposal($proposal);
+	}
+
+	private function timestampDiff(string $since): int
+	{
+		return $this->clockService->timestampDiff($since);
+	}
+
+	protected function publishProposal($proposal): void
+	{
+		$this->publisher->publishProposal($proposal);
+	}
+
+	protected function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+
+	protected function timeFactor(string $mode): int
+	{
+		$timeFactor = 1;
+
+		if ($mode === 'SLOW') {
+			$timeFactor = 2;
+		}
+
+		if ($mode === 'MEDIUM') {
+			$timeFactor = 4;
+		}
+
+		if ($mode === 'FAST') {
+			$timeFactor = 8;
+		}
+
+		if ($mode === 'ULTRAFAST') {
+			$timeFactor = 13;
+		}
+
+		return $timeFactor;
+	}
+}
+```
+
+Right now, we can make all protected methods private, because we don't need to override any of them, and we can commit the changes.
