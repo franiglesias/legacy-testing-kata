@@ -1425,3 +1425,361 @@ class BlogAuctionTask
 ```
 
 Right now, we can make all protected methods private, because we don't need to override any of them, and we can commit the changes.
+
+## Addressing primitive obsession
+
+Let's consider the situation: we have concepts like blog, time factor, mode, price and proposal, that belongs to the domain of the application. They all are modelled with primitive types. We can do better.
+
+Mode and TimeFactor have a direct relation: TimeFactor is a direct function of Mode. We can express this using a value object: 
+
+From this:
+
+```php
+    $timeFactor = $this->timeFactor($mode);
+```
+
+To this:
+
+```php
+    $mode = new Mode($mode);
+    $timeFactor = $mode->timeFactor();
+```
+
+So, basically we can create the class Mode by extracting the timeFactor method. First step: 
+
+```php
+namespace Quotebot\Domain;
+
+
+class Mode
+{
+
+	public function timeFactor(string $mode): int
+	{
+		$timeFactor = 1;
+
+		if ($mode === 'SLOW') {
+			$timeFactor = 2;
+		}
+
+		if ($mode === 'MEDIUM') {
+			$timeFactor = 4;
+		}
+
+		if ($mode === 'FAST') {
+			$timeFactor = 8;
+		}
+
+		if ($mode === 'ULTRAFAST') {
+			$timeFactor = 13;
+		}
+
+		return $timeFactor;
+	}
+}
+```
+
+Now, we move the parameter to the constructor:
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace Quotebot\Domain;
+
+
+class Mode
+{
+
+	private string $mode;
+
+	public function __construct(string $mode)
+	{
+		$this->mode = $mode;
+	}
+	
+	public function timeFactor(): int
+	{
+		$timeFactor = 1;
+
+		if ($this->mode === 'SLOW') {
+			$timeFactor = 2;
+		}
+
+		if ($this->mode === 'MEDIUM') {
+			$timeFactor = 4;
+		}
+
+		if ($this->mode === 'FAST') {
+			$timeFactor = 8;
+		}
+
+		if ($this->mode === 'ULTRAFAST') {
+			$timeFactor = 13;
+		}
+
+		return $timeFactor;
+	}
+}
+```
+
+It is easy to see that we can do better with a map:
+
+```php
+namespace Quotebot\Domain;
+
+
+class Mode
+{
+
+	private string $mode;
+
+	private const SLOW      = 'SLOW';
+	private const MEDIUM    = 'MEDIUM';
+	private const FAST      = 'FAST';
+	private const ULTRAFAST = 'ULTRAFAST';
+
+	private const TIME_FACTOR = [
+		self::SLOW      => 2,
+		self::MEDIUM    => 4,
+		self::FAST      => 8,
+		self::ULTRAFAST => 13,
+	];
+
+	public function __construct(string $mode)
+	{
+		$this->mode = $mode;
+	}
+
+	public function timeFactor(): int
+	{
+		return self::TIME_FACTOR[$this->mode];
+	}
+}
+```
+
+There are two problems, though:
+
+What should happen if we try to instantiate the mode with an invalid or unknown value? From the previous code we can expect that invalid mode should have associated a TimeFactor equal to 1. 
+
+What if we try to instantiate with a mode raw value in lower case?.
+
+We can TDD changes in Mode to address those problems. Here is the first test:
+
+```php
+namespace Quotebot\Tests\Domain;
+
+use Quotebot\Domain\Mode;
+use PHPUnit\Framework\TestCase;
+
+class ModeTest extends TestCase
+{
+	/** @test */
+	public function shouldAllowUnknownModesWithNeutralTimeFactor(): void
+	{
+		$mode = new Mode('UNKNOWN');
+
+		self::assertEquals(1, $mode->timeFactor());
+	}
+}
+```
+
+This test should fail, and it does, prompting us to implement something that makes it pass. This is the production code after some refactoring:
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace Quotebot\Domain;
+
+
+class Mode
+{
+
+	private string $mode;
+
+	private const SLOW      = 'SLOW';
+	private const MEDIUM    = 'MEDIUM';
+	private const FAST      = 'FAST';
+	private const ULTRAFAST = 'ULTRAFAST';
+	private const UNKNOWN   = 'UNKNOWN';
+
+	private const TIME_FACTOR = [
+		self::UNKNOWN   => 1,
+		self::SLOW      => 2,
+		self::MEDIUM    => 4,
+		self::FAST      => 8,
+		self::ULTRAFAST => 13,
+	];
+
+	public function __construct(string $mode)
+	{
+		if ($this->modelRawValueIsKnown($mode)) {
+			$mode = self::UNKNOWN;
+		}
+
+		$this->mode = $mode;
+	}
+
+	public function timeFactor(): int
+	{
+		return self::TIME_FACTOR[$this->mode];
+	}
+
+	protected function modelRawValueIsKnown(string $mode): bool
+	{
+		$knownValues = array_keys(self::TIME_FACTOR);
+
+		return !in_array($mode, $knownValues, true);
+	}
+}
+```
+
+The second concert is a sanitization. We want to make sure that the constructor is case-insensitive:
+
+```php
+namespace Quotebot\Tests\Domain;
+
+use Quotebot\Domain\Mode;
+use PHPUnit\Framework\TestCase;
+
+class ModeTest extends TestCase
+{
+	/** @test */
+	public function shouldAllowUnknownModesWithNeutralTimeFactor(): void
+	{
+		$mode = new Mode('UNKNOWN');
+
+		self::assertEquals(1, $mode->timeFactor());
+	}
+
+	/** @test */
+	public function shouldBeCaseInsensitive(): void
+	{
+		$mode = new Mode('fast');
+
+		self::assertEquals(8, $mode->timeFactor());
+	}
+}
+```
+
+We can make the test pass with this simple addition:
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace Quotebot\Domain;
+
+
+class Mode
+{
+
+	private string $mode;
+
+	private const SLOW      = 'SLOW';
+	private const MEDIUM    = 'MEDIUM';
+	private const FAST      = 'FAST';
+	private const ULTRAFAST = 'ULTRAFAST';
+	private const UNKNOWN   = 'UNKNOWN';
+
+	private const TIME_FACTOR = [
+		self::UNKNOWN   => 1,
+		self::SLOW      => 2,
+		self::MEDIUM    => 4,
+		self::FAST      => 8,
+		self::ULTRAFAST => 13,
+	];
+
+	public function __construct(string $mode)
+	{
+		$mode = strtoupper($mode);
+		
+		if ($this->modelRawValueIsKnown($mode)) {
+			$mode = self::UNKNOWN;
+		}
+
+		$this->mode = $mode;
+	}
+
+	public function timeFactor(): int
+	{
+		return self::TIME_FACTOR[$this->mode];
+	}
+
+	protected function modelRawValueIsKnown(string $mode): bool
+	{
+		$knownValues = array_keys(self::TIME_FACTOR);
+
+		return !in_array($mode, $knownValues, true);
+	}
+}
+```
+
+Last thing to do is that we should pass the new Mode object as parameter to BlogAuctionTask::priceAndPublish. So we look for its usages to see where we should make the change. The only usage is in AutomaticQuoteBot:
+
+```php
+namespace Quotebot;
+
+use Quotebot\Domain\Mode;
+
+class AutomaticQuoteBot
+{
+	private BlogAuctionTask $blogAuctionTask;
+
+	public function __construct(?BlogAuctionTask $blogAuctionTask = null)
+	{
+		$this->blogAuctionTask = $blogAuctionTask ?? new BlogAuctionTask;
+	}
+
+	public function sendAllQuotes(string $mode): void
+	{
+		$blogs = $this->getBlogs($mode);
+		foreach ($blogs as $blog) {
+			$this->blogAuctionTask->priceAndPublish($blog, new Mode($mode));
+		}
+	}
+
+	protected function getBlogs(string $mode)
+	{
+		return AdSpace::getAdSpaces($mode);
+	}
+}
+```
+
+We could improve this code, because $mode has a unique value for all the blogs. We can make some naming changes and allow `Mode` to have a canonical string representation by using the magic of `__toString`. We also take the chance to make dependency mandatory.
+
+```php
+namespace Quotebot;
+
+use Quotebot\Domain\Mode;
+
+class AutomaticQuoteBot
+{
+	private BlogAuctionTask $blogAuctionTask;
+
+	public function __construct(BlogAuctionTask $blogAuctionTask)
+	{
+		$this->blogAuctionTask = $blogAuctionTask;
+	}
+
+	public function sendAllQuotes(string $rawMode): void
+	{
+		$mode = new Mode($rawMode);
+
+		$blogs = $this->getBlogs($mode);
+		foreach ($blogs as $blog) {
+			$this->blogAuctionTask->priceAndPublish($blog, $mode);
+		}
+	}
+
+	protected function getBlogs(Mode $mode)
+	{
+		return AdSpace::getAdSpaces((string)$mode);
+	}
+}
+```
+
+When we run ApplicationTest we will notice that the anonymous class extending from AutomaticQuoteBot should be changed to honor the signature change in the getBlogs method.
+
+All this changes can be commited.

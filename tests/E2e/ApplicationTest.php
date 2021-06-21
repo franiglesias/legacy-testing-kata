@@ -9,6 +9,7 @@ use Quotebot\AutomaticQuoteBot;
 use Quotebot\BlogAuctionTask;
 use Quotebot\Domain\ClockService;
 use Quotebot\Domain\MarketDataProvider;
+use Quotebot\Domain\Mode;
 use Quotebot\Tests\E2e\Doubles\PublisherSpy;
 
 class ApplicationTest extends TestCase
@@ -48,7 +49,7 @@ class ApplicationTest extends TestCase
 				parent::__construct($blogAuctionTask);
 			}
 
-			protected function getBlogs(string $mode): array
+			protected function getBlogs(Mode $mode): array
 			{
 				return $this->blogs;
 			}
