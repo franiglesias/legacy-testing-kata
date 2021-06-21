@@ -2,27 +2,24 @@
 
 namespace Quotebot;
 
-use MarketStudyVendor;
+use Quotebot\Domain\MarketDataProvider;
 use Quotebot\Domain\Publisher;
-use Quotebot\Infrastructure\VendorQuotePublisher;
 
 class BlogAuctionTask
 {
-    /** @var MarketStudyVendor */
-    private $marketDataRetriever;
-	private ?Publisher $publisher;
+	private MarketDataProvider $marketDataRetriever;
+	private Publisher $publisher;
 
 	public function __construct(
-    	?MarketStudyVendor $marketStudyVendor = null,
-		?Publisher $publisher = null
-	)
-    {
-        $this->marketDataRetriever = $marketStudyVendor ?? new MarketStudyVendor();
-		$this->publisher = $publisher ?? new VendorQuotePublisher();
+		MarketDataProvider $marketStudyVendor,
+		Publisher $publisher
+	) {
+		$this->marketDataRetriever = $marketStudyVendor;
+		$this->publisher           = $publisher;
 	}
 
-    public function priceAndPublish(string $blog, string $mode)
-    {
+    public function priceAndPublish(string $blog, string $mode): void
+	{
 		$avgPrice = $this->averagePrice($blog);
 
 		// FIXME should actually be +2 not +1

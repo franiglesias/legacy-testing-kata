@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace Quotebot\Tests\E2e;
 
-use MarketStudyVendor;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Application;
 use Quotebot\AutomaticQuoteBot;
 use Quotebot\BlogAuctionTask;
+use Quotebot\Domain\MarketDataProvider;
 use Quotebot\Tests\E2e\Doubles\PublisherSpy;
 
 class ApplicationTest extends TestCase
@@ -15,11 +15,11 @@ class ApplicationTest extends TestCase
 	/** @test */
 	public function shouldPublishOneProposalForEachBlog(): void
 	{
-		$marketStudyVendor = $this->createMock(MarketStudyVendor::class);
-		$marketStudyVendor->method('averagePrice')->willReturn(0.0);
+		$marketDataProvider = $this->createMock(MarketDataProvider::class);
+		$marketDataProvider->method('averagePrice')->willReturn(0.0);
 
-		$publisherSpy    = new PublisherSpy();
-		$blogAuctionTask = new BlogAuctionTask($marketStudyVendor, $publisherSpy);
+		$publisherSpy    = new PublisherSpy;
+		$blogAuctionTask = new BlogAuctionTask($marketDataProvider, $publisherSpy);
 		$quoteBot        = $this->buildQuoteBot($blogAuctionTask, ['Blog 1', 'Blog 2']);
 
 		Application::injectBot($quoteBot);

@@ -808,3 +808,238 @@ class ApplicationTest extends TestCase
 The test is passing, so we can stop here and commit the changes so far.
 
 ## Inverting MarketStudyVendor dependency
+
+Next change I would like to perform is to invert the MarketStudyVendor dependency.
+
+So, first, we make sure that the current ApplicationTest passes. Once it does, we extract an interface. We can use the
+current MarketStudyVendor as template for that.
+
+```php
+interface MarketDataProvider
+{
+	public function averagePrice(string $blog): float;
+}
+```
+
+Now, we are going to create an Adapter that implements is by using the MarketStudyVendor class. It is pretty simple:
+
+```php
+namespace Quotebot\Infrastructure;
+
+
+use Quotebot\Domain\MarketDataProvider;
+
+class VendorMarketDataProvider implements MarketDataProvider
+{
+	private \MarketStudyVendor $marketStudyVendor;
+
+	public function __construct(\MarketStudyVendor $marketStudyVendor)
+	{
+		$this->marketStudyVendor = $marketStudyVendor;
+	}
+
+	public function averagePrice(string $blog): float
+	{
+		return $this->marketStudyVendor->averagePrice($blog);
+	}
+}
+```
+
+We will need to change the test in order to use the new interface.
+
+```php
+class ApplicationTest extends TestCase
+{
+	/** @test */
+	public function shouldPublishOneProposalForEachBlog(): void
+	{
+		$marketDataProvider = $this->createMock(MarketDataProvider::class);
+		$marketDataProvider->method('averagePrice')->willReturn(0.0);
+
+		$publisherSpy    = new PublisherSpy;
+		$blogAuctionTask = new BlogAuctionTask($marketDataProvider, $publisherSpy);
+		$quoteBot        = $this->buildQuoteBot($blogAuctionTask, ['Blog 1', 'Blog 2']);
+
+		Application::injectBot($quoteBot);
+		Application::main();
+
+		self::assertCount(2, $publisherSpy->proposals());
+	}
+
+	private function buildQuoteBot(BlogAuctionTask $blogAuctionTask, array $blogs): AutomaticQuoteBot
+	{
+		return new class($blogAuctionTask, $blogs) extends AutomaticQuoteBot {
+			private array $blogs;
+
+			public function __construct(BlogAuctionTask $blogAuctionTask, array $blogs)
+			{
+				$this->blogs = $blogs;
+				parent::__construct($blogAuctionTask);
+			}
+
+			protected function getBlogs(string $mode): array
+			{
+				return $this->blogs;
+			}
+		};
+	}
+}
+```
+
+Change the BlogAuctionTask code to use the new Interface.
+
+```php
+namespace Quotebot;
+
+use MarketStudyVendor;
+use Quotebot\Domain\MarketDataProvider;
+use Quotebot\Domain\Publisher;
+use Quotebot\Infrastructure\VendorMarketDataProvider;
+use Quotebot\Infrastructure\VendorQuotePublisher;
+
+class BlogAuctionTask
+{
+    private ?MarketDataProvider $marketDataRetriever;
+	private ?Publisher $publisher;
+
+	public function __construct(
+    	?MarketDataProvider $marketStudyVendor = null,
+		?Publisher $publisher = null
+	)
+    {
+        $this->marketDataRetriever = $marketStudyVendor ?? new VendorMarketDataProvider(new MarketStudyVendor);
+		$this->publisher = $publisher ?? new VendorQuotePublisher();
+	}
+
+    public function priceAndPublish(string $blog, string $mode)
+    {
+		$avgPrice = $this->averagePrice($blog);
+
+		// FIXME should actually be +2 not +1
+
+        $proposal = $avgPrice + 1;
+        $timeFactor = 1;
+
+        if ($mode === 'SLOW') {
+            $timeFactor = 2;
+        }
+
+        if ($mode === 'MEDIUM') {
+            $timeFactor = 4;
+        }
+
+        if ($mode === 'FAST') {
+            $timeFactor = 8;
+        }
+
+        if ($mode === 'ULTRAFAST') {
+            $timeFactor = 13;
+        }
+
+        $proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
+            * $timeFactor
+            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
+
+		$this->publishProposal($proposal);
+	}
+
+	protected function publishProposal($proposal): void
+	{
+		$this->publisher->publishProposal($proposal);
+	}
+
+	protected function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+}
+```
+
+Right now, the injection is not finished yet. We need to clean things inside `BlogAuctionTask` constructor, so we'll have to add production code that makes use of the new injection capabilities.
+
+Basically, we need to change **run.php**, so we instantiate all the things we will need in production code, allowing us to make BlogAuctionTask mandatory instead of optional.
+
+```php
+require 'vendor/autoload.php';
+
+use Quotebot\Application;
+use Quotebot\AutomaticQuoteBot;
+use Quotebot\BlogAuctionTask;
+use Quotebot\Infrastructure\VendorMarketDataProvider;
+use Quotebot\Infrastructure\VendorQuotePublisher;
+
+$marketDataProvider = new VendorMarketDataProvider(new MarketStudyVendor);
+$publisher = new VendorQuotePublisher;
+$blogAuctionTask    = new BlogAuctionTask($marketDataProvider, $publisher);
+$automaticQuoteBot  = new AutomaticQuoteBot($blogAuctionTask);
+
+Application::injectBot($automaticQuoteBot);
+Application::main();
+```
+
+If we execute run.php as if it was in the production environment, we can verify that the behavior is exactly the same. Also, if we execute the test.
+
+We are ready to fix the problem of having the dependencies as optional in BlogAuctionTask constructor, making them required.
+
+```php
+use Quotebot\Domain\MarketDataProvider;
+use Quotebot\Domain\Publisher;
+
+class BlogAuctionTask
+{
+	private MarketDataProvider $marketDataRetriever;
+	private Publisher $publisher;
+
+	public function __construct(
+		MarketDataProvider $marketStudyVendor,
+		Publisher $publisher
+	) {
+		$this->marketDataRetriever = $marketStudyVendor;
+		$this->publisher           = $publisher;
+	}
+
+    public function priceAndPublish(string $blog, string $mode): void
+	{
+		$avgPrice = $this->averagePrice($blog);
+
+		// FIXME should actually be +2 not +1
+
+        $proposal = $avgPrice + 1;
+        $timeFactor = 1;
+
+        if ($mode === 'SLOW') {
+            $timeFactor = 2;
+        }
+
+        if ($mode === 'MEDIUM') {
+            $timeFactor = 4;
+        }
+
+        if ($mode === 'FAST') {
+            $timeFactor = 8;
+        }
+
+        if ($mode === 'ULTRAFAST') {
+            $timeFactor = 13;
+        }
+
+        $proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
+            * $timeFactor
+            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
+
+		$this->publishProposal($proposal);
+	}
+
+	protected function publishProposal($proposal): void
+	{
+		$this->publisher->publishProposal($proposal);
+	}
+
+	protected function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+}
+```
+
+Finally, all these changes deserve a commit.
