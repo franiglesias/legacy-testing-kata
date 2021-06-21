@@ -96,6 +96,8 @@ One of the problems is that the coupling is pretty strong due to several reasons
 * Static dependencies inside de code
 * There is no dependency injection at all
 
+## Isolate dependencies
+
 Our first step could be isolating dependencies inside the classes that use them. This way we can be in better position for testing. This refactoring can be done without having tests at all.
 
 General procedure consists of moving the calls to dependencies to protected methods. This will allow us to create testable classes overriding the methods containing these calls, so we can avoid the coupling in the test environment. When we have tests in place, we can start moving to a decoupled set up.
@@ -320,3 +322,70 @@ class AdSpace
 ```
 
 Note that there are some TODO/FIXME comments in the code. We will address them later in the development. In the meantime, we will commit the changes.
+
+## Let's put application under test
+
+Examining the code, we can see that the script runs by issuing a static call to Application::main method. This method instantiates AutomaticQuoteBot making it difficult to replace it with a testable version.
+
+One possible approach can be to test AutomaticQuoteBot, given that we simply instantiate it to make a call to its main method. Nevertheless, if we want to really improve the design we should test from the outside. Is there a way to put the Application in a test harness, even being statically called.
+
+```php
+class Application
+{
+    /** main application method */
+    public static function main(array $args = null)
+    {
+        $bot = new AutomaticQuoteBot();
+        $bot->sendAllQuotes('FAST');
+    }
+}
+```
+
+Can we do it in a way that allows injectable dependencies? This is one possible approach. First, we introduce a static member to hold the AutomaticQuoteBot, and we initialize it with a new instance if it is not previously defined.
+
+```php
+class Application
+{
+	private static ?AutomaticQuoteBot $quoteBot;
+	
+	/** main application method */
+    public static function main(array $args = null): void
+	{
+    	if (null === self::$quoteBot) {
+    		self::$quoteBot = new AutomaticQuoteBot();
+		}
+        
+        self::$quoteBot->sendAllQuotes('FAST');
+    }
+}
+```
+
+Next step is to introduce a method that will allow us to inject an instance of AutomaticQuoteBot.
+
+```php
+class Application
+{
+	private static ?AutomaticQuoteBot $quoteBot;
+
+	public static function injectBot(AutomaticQuoteBot $quoteBot): void
+	{
+		self::$quoteBot = $quoteBot;
+	}
+	
+	/** main application method */
+    public static function main(array $args = null): void
+	{
+    	if (null === self::$quoteBot) {
+    		self::$quoteBot = new AutomaticQuoteBot();
+		}
+        
+        self::$quoteBot->sendAllQuotes('FAST');
+    }
+}
+```
+
+This way, the main method remains static while we will be able to inject dependencies as needed. If we run the script then we get the same result as in the beginning. In fact the logic 
+
+So we can commit this change before starting with the test. 
+
+## Testing Application
