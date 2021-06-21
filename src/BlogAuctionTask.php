@@ -3,16 +3,23 @@
 namespace Quotebot;
 
 use MarketStudyVendor;
+use Quotebot\Domain\Publisher;
+use Quotebot\Infrastructure\VendorQuotePublisher;
 
 class BlogAuctionTask
 {
     /** @var MarketStudyVendor */
     private $marketDataRetriever;
+	private ?Publisher $publisher;
 
-    public function __construct(?MarketStudyVendor $marketStudyVendor = null)
+	public function __construct(
+    	?MarketStudyVendor $marketStudyVendor = null,
+		?Publisher $publisher = null
+	)
     {
         $this->marketDataRetriever = $marketStudyVendor ?? new MarketStudyVendor();
-    }
+		$this->publisher = $publisher ?? new VendorQuotePublisher();
+	}
 
     public function priceAndPublish(string $blog, string $mode)
     {
@@ -48,7 +55,7 @@ class BlogAuctionTask
 
 	protected function publishProposal($proposal): void
 	{
-		\QuotePublisher::publish($proposal);
+		$this->publisher->publishProposal($proposal);
 	}
 
 	protected function averagePrice(string $blog): float

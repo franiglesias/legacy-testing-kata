@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Quotebot\Application;
 use Quotebot\AutomaticQuoteBot;
 use Quotebot\BlogAuctionTask;
+use Quotebot\Tests\E2e\Doubles\PublisherSpy;
 
 class ApplicationTest extends TestCase
 {
@@ -17,13 +18,14 @@ class ApplicationTest extends TestCase
 		$marketStudyVendor = $this->createMock(MarketStudyVendor::class);
 		$marketStudyVendor->method('averagePrice')->willReturn(0.0);
 
-		$blogAuctionTask = $this->buildBlogAuctionTask($marketStudyVendor);
+		$publisherSpy    = new PublisherSpy();
+		$blogAuctionTask = new BlogAuctionTask($marketStudyVendor, $publisherSpy);
 		$quoteBot        = $this->buildQuoteBot($blogAuctionTask, ['Blog 1', 'Blog 2']);
 
 		Application::injectBot($quoteBot);
 		Application::main();
 
-		self::assertCount(2, $blogAuctionTask->proposals);
+		self::assertCount(2, $publisherSpy->proposals());
 	}
 
 	private function buildQuoteBot(BlogAuctionTask $blogAuctionTask, array $blogs): AutomaticQuoteBot
@@ -40,18 +42,6 @@ class ApplicationTest extends TestCase
 			protected function getBlogs(string $mode): array
 			{
 				return $this->blogs;
-			}
-		};
-	}
-
-	private function buildBlogAuctionTask(MarketStudyVendor $marketStudyVendor): BlogAuctionTask
-	{
-		return new class($marketStudyVendor) extends BlogAuctionTask {
-			public array $proposals = [];
-
-			protected function publishProposal($proposal): void
-			{
-				$this->proposals[] = $proposal;
 			}
 		};
 	}

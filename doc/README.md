@@ -562,5 +562,249 @@ class ApplicationTest extends TestCase
 		};
 	}
 }
-
 ```
+## Starting the architectural refactoring
+
+We could take different approaches to drive the refactor of this application. It depends on the trait we want to prioritize. At this point, we managed to reduce the coupling with the vendor dependencies by applying the Dependency Injection pattern when possible.
+
+Now, we need to move forward a bit, by extracting the static dependencies and applying the Dependency Inversion Principle, so we can evolve our code independently of the vendors.
+
+Let's start with the QuotePublisher inside BlogAuctionTask. We have it isolated already. Now we need to extract the `publishProposal` method to a new class that we can inject. So, we can extract first an interface. This interface will be part of the Domain layer.
+
+```php
+namespace Quotebot\Domain;
+
+interface Publisher
+{
+	public function publishProposal($proposal): void;
+}
+```
+
+Now, we can implement this Publisher interface using the QuotePublisher vendor creating an Adapter in the Infrastructure layer. As you can see, we only have to copy the method in `BlogAuctionTask`. 
+
+```php
+namespace Quotebot\Infrastructure;
+
+
+use Quotebot\Domain\Publisher;
+use QuotePublisher;
+
+class VendorQuotePublisher implements Publisher
+{
+
+	public function publishProposal($proposal): void
+	{
+		QuotePublisher::publish($proposal);
+	}
+}
+```
+
+For the moment, changes should not affect our `ApplicationTest`. Anyway, the next steps should.
+
+First, we are going to inject the new VendorQuotePublisher in BlogAuctionTask. For the moment, it is better to let it be optional. W
+
+```php
+use MarketStudyVendor;
+use Quotebot\Domain\Publisher;
+use Quotebot\Infrastructure\VendorQuotePublisher;
+
+class BlogAuctionTask
+{
+    /** @var MarketStudyVendor */
+    private $marketDataRetriever;
+	private ?Publisher $publisher;
+
+	public function __construct(
+    	?MarketStudyVendor $marketStudyVendor = null,
+		?Publisher $publisher = null
+	)
+    {
+        $this->marketDataRetriever = $marketStudyVendor ?? new MarketStudyVendor();
+		$this->publisher = $publisher ?? new VendorQuotePublisher();
+	}
+
+    public function priceAndPublish(string $blog, string $mode)
+    {
+		$avgPrice = $this->averagePrice($blog);
+
+		// FIXME should actually be +2 not +1
+
+        $proposal = $avgPrice + 1;
+        $timeFactor = 1;
+
+        if ($mode === 'SLOW') {
+            $timeFactor = 2;
+        }
+
+        if ($mode === 'MEDIUM') {
+            $timeFactor = 4;
+        }
+
+        if ($mode === 'FAST') {
+            $timeFactor = 8;
+        }
+
+        if ($mode === 'ULTRAFAST') {
+            $timeFactor = 13;
+        }
+
+        $proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
+            * $timeFactor
+            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
+
+		$this->publishProposal($proposal);
+	}
+
+	protected function publishProposal($proposal): void
+	{
+		\QuotePublisher::publish($proposal);
+	}
+
+	protected function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+}
+```
+
+We run ApplicationTest again to verify that we haven't broken things. If all goes green, then we will introduce this change to make the injected dependency publish the proposals_
+
+```php
+class BlogAuctionTask
+{
+    /** @var MarketStudyVendor */
+    private $marketDataRetriever;
+	private ?Publisher $publisher;
+
+	public function __construct(
+    	?MarketStudyVendor $marketStudyVendor = null,
+		?Publisher $publisher = null
+	)
+    {
+        $this->marketDataRetriever = $marketStudyVendor ?? new MarketStudyVendor();
+		$this->publisher = $publisher ?? new VendorQuotePublisher();
+	}
+
+    public function priceAndPublish(string $blog, string $mode)
+    {
+		$avgPrice = $this->averagePrice($blog);
+
+		// FIXME should actually be +2 not +1
+
+        $proposal = $avgPrice + 1;
+        $timeFactor = 1;
+
+        if ($mode === 'SLOW') {
+            $timeFactor = 2;
+        }
+
+        if ($mode === 'MEDIUM') {
+            $timeFactor = 4;
+        }
+
+        if ($mode === 'FAST') {
+            $timeFactor = 8;
+        }
+
+        if ($mode === 'ULTRAFAST') {
+            $timeFactor = 13;
+        }
+
+        $proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
+            * $timeFactor
+            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
+
+		$this->publishProposal($proposal);
+	}
+
+	protected function publishProposal($proposal): void
+	{
+		$this->publisher->publishProposal($proposal);
+	}
+
+	protected function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+}
+```
+
+Run the ApplicationTest again. It should confirm that all is working as expected. We have managed to remove a hidden, static dependency, making it injectable and inverting the control.
+
+We should change the test to reflect this changes. This will remove the need to make private the `publishProposal` method, given we will no longer need to override it for testing. Also, we won't need to spy on BlogAuctionTask. We can move this logic to a special Publisher for testing, a PublisherSpy.
+
+```php
+namespace Quotebot\Tests\E2e\Doubles;
+
+
+use Quotebot\Domain\Publisher;
+
+class PublisherSpy implements Publisher
+{
+	private array $proposals = [];
+
+	public function publishProposal($proposal): void
+	{
+		$this->proposals[] = $proposal;
+	}
+
+	public function proposals(): array
+	{
+		return $this->proposals;
+	}
+}
+```
+
+Here is the test:
+
+```php
+namespace Quotebot\Tests\E2e;
+
+use MarketStudyVendor;
+use PHPUnit\Framework\TestCase;
+use Quotebot\Application;
+use Quotebot\AutomaticQuoteBot;
+use Quotebot\BlogAuctionTask;
+use Quotebot\Tests\E2e\Doubles\PublisherSpy;
+
+class ApplicationTest extends TestCase
+{
+	/** @test */
+	public function shouldPublishOneProposalForEachBlog(): void
+	{
+		$marketStudyVendor = $this->createMock(MarketStudyVendor::class);
+		$marketStudyVendor->method('averagePrice')->willReturn(0.0);
+
+		$publisherSpy    = new PublisherSpy();
+		$blogAuctionTask = new BlogAuctionTask($marketStudyVendor, $publisherSpy);
+		$quoteBot        = $this->buildQuoteBot($blogAuctionTask, ['Blog 1', 'Blog 2']);
+
+		Application::injectBot($quoteBot);
+		Application::main();
+
+		self::assertCount(2, $publisherSpy->proposals());
+	}
+
+	private function buildQuoteBot(BlogAuctionTask $blogAuctionTask, array $blogs): AutomaticQuoteBot
+	{
+		return new class($blogAuctionTask, $blogs) extends AutomaticQuoteBot {
+			private array $blogs;
+
+			public function __construct(BlogAuctionTask $blogAuctionTask, array $blogs)
+			{
+				$this->blogs = $blogs;
+				parent::__construct($blogAuctionTask);
+			}
+
+			protected function getBlogs(string $mode): array
+			{
+				return $this->blogs;
+			}
+		};
+	}
+}
+```
+
+The test is passing, so we can stop here and commit the changes so far.
+
+## Inverting MarketStudyVendor dependency
