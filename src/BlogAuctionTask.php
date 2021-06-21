@@ -9,9 +9,9 @@ class BlogAuctionTask
     /** @var MarketStudyVendor */
     private $marketDataRetriever;
 
-    public function __construct()
+    public function __construct(?MarketStudyVendor $marketStudyVendor = null)
     {
-        $this->marketDataRetriever = new MarketStudyVendor();
+        $this->marketDataRetriever = $marketStudyVendor ?? new MarketStudyVendor();
     }
 
     public function priceAndPublish(string $blog, string $mode)

@@ -140,7 +140,63 @@ class AutomaticQuoteBot
 }
 ```
 
-We have two of these dependencies in BlogAuctionTasks. One is because of a static invocation. The other one seems unnecessary, but it is better to isolate it. This is specially true if we have several calls to the same dependency.
+That's for the static dependency. We have also a hidden dependency with `BlogAuctionTask`, something that we can improve, isolating it, but also by allowing it to be injected.
+
+BlogAuctionTask has no state to maintain, so we only need a single instance. We promote it to member of AutomaticQuoteBot and instantiate it in the constructor.
+
+```php
+class AutomaticQuoteBot
+{
+	private BlogAuctionTask $blogAuctionTask;
+
+	public function __construct()
+	{
+		$this->blogAuctionTask = new BlogAuctionTask;
+	}
+
+	public function sendAllQuotes(string $mode): void
+	{
+		$blogs = $this->getBlogs($mode);
+		foreach ($blogs as $blog) {
+			$this->blogAuctionTask->priceAndPublish($blog, $mode);
+		}
+	}
+
+	protected function getBlogs(string $mode)
+	{
+		return AdSpace::getAdSpaces($mode);
+	}
+}
+```
+
+Now, we make it optionally injectable, so we don't break the current way of instantiating it, but allowing us to replace it via injection.
+
+```php
+class AutomaticQuoteBot
+{
+	private BlogAuctionTask $blogAuctionTask;
+
+	public function __construct(?BlogAuctionTask $blogAuctionTask = null)
+	{
+		$this->blogAuctionTask = $blogAuctionTask ?? new BlogAuctionTask;
+	}
+
+	public function sendAllQuotes(string $mode): void
+	{
+		$blogs = $this->getBlogs($mode);
+		foreach ($blogs as $blog) {
+			$this->blogAuctionTask->priceAndPublish($blog, $mode);
+		}
+	}
+
+	protected function getBlogs(string $mode)
+	{
+		return AdSpace::getAdSpaces($mode);
+	}
+}
+```
+
+We have two of these dependencies in BlogAuctionTask. One is because of a static invocation. The other one can be isolated. This is specially true when we have several calls to the same dependency. Also, we want to be able to inject the dependency.
 
 Before:
 
@@ -297,6 +353,64 @@ class BlogAuctionTask
 	}
 }
 ```
+
+Finally, making dependency injectable:
+
+```php
+class BlogAuctionTask
+{
+    /** @var MarketStudyVendor */
+    private $marketDataRetriever;
+
+    public function __construct(?MarketStudyVendor $marketStudyVendor = null)
+    {
+        $this->marketDataRetriever = $marketStudyVendor ?? new MarketStudyVendor();
+    }
+
+    public function priceAndPublish(string $blog, string $mode)
+    {
+		$avgPrice = $this->averagePrice($blog);
+
+		// FIXME should actually be +2 not +1
+
+        $proposal = $avgPrice + 1;
+        $timeFactor = 1;
+
+        if ($mode === 'SLOW') {
+            $timeFactor = 2;
+        }
+
+        if ($mode === 'MEDIUM') {
+            $timeFactor = 4;
+        }
+
+        if ($mode === 'FAST') {
+            $timeFactor = 8;
+        }
+
+        if ($mode === 'ULTRAFAST') {
+            $timeFactor = 13;
+        }
+
+        $proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
+            * $timeFactor
+            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
+
+		$this->publishProposal($proposal);
+	}
+
+	protected function publishProposal($proposal): void
+	{
+		\QuotePublisher::publish($proposal);
+	}
+
+	protected function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+}
+```
+
 AddSpace has algo this kind of static dependency, but AdSpace has its own problems with its singleton implementation. We can wait for improving it later.
 
 ```php
