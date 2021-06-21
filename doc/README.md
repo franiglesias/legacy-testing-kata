@@ -498,8 +498,69 @@ class Application
 }
 ```
 
-This way, the main method remains static while we will be able to inject dependencies as needed. If we run the script then we get the same result as in the beginning. In fact the logic 
+This way, the `main` method remains static while we will be able to inject dependencies as needed. If we run the script then we get the same result as in the beginning. In fact the logic 
 
 So we can commit this change before starting with the test. 
 
 ## Testing Application
+
+To write the test we will need to understand something about the expected behavior of the application. The basic idea is to generate proposals to publish ads in several blogs. So the expected outcome is to have one proposal for each of the blogs registered in the application.
+
+The list of blogs comes from the `TechBlog` class, that simulates a database, via the `AdSpace` class, and it is used as input by `AutomaticQuoteBot`. Thankfully, we've extracted this in the `getBlogs` method, that we can override in a test crafted version of `AutomaticQuoteBot`.
+
+The same can be said about `BlogAuctionTask`. It is responsible for both calculating the proposal and publishing it with the `QuotePublisher`. We can override the `publishProposal` method to convert it into a spy, so we can check the outcome without touching any external service.
+
+Also, this class depends on `MarketStudyVendor`, a service that requires a license to run. We will need to mock its behavior.
+
+This is the test. At this point we don't have details about how the system calculates the prices, but it is enough to have a safety net to start refactoring the whole application. 
+
+```php
+class ApplicationTest extends TestCase
+{
+	/** @test */
+	public function shouldPublishOneProposalForEachBlog(): void
+	{
+		$marketStudyVendor = $this->createMock(MarketStudyVendor::class);
+		$marketStudyVendor->method('averagePrice')->willReturn(0.0);
+
+		$blogAuctionTask = $this->buildBlogAuctionTask($marketStudyVendor);
+		$quoteBot        = $this->buildQuoteBot($blogAuctionTask, ['Blog 1', 'Blog 2']);
+
+		Application::injectBot($quoteBot);
+		Application::main();
+
+		self::assertCount(2, $blogAuctionTask->proposals);
+	}
+
+	private function buildQuoteBot(BlogAuctionTask $blogAuctionTask, array $blogs): AutomaticQuoteBot
+	{
+		return new class($blogAuctionTask, $blogs) extends AutomaticQuoteBot {
+			private array $blogs;
+
+			public function __construct(BlogAuctionTask $blogAuctionTask, array $blogs)
+			{
+				$this->blogs = $blogs;
+				parent::__construct($blogAuctionTask);
+			}
+
+			protected function getBlogs(string $mode): array
+			{
+				return $this->blogs;
+			}
+		};
+	}
+
+	private function buildBlogAuctionTask(MarketStudyVendor $marketStudyVendor): BlogAuctionTask
+	{
+		return new class($marketStudyVendor) extends BlogAuctionTask {
+			public array $proposals = [];
+
+			protected function publishProposal($proposal): void
+			{
+				$this->proposals[] = $proposal;
+			}
+		};
+	}
+}
+
+```
