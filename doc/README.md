@@ -1780,6 +1780,248 @@ class AutomaticQuoteBot
 }
 ```
 
-When we run ApplicationTest we will notice that the anonymous class extending from AutomaticQuoteBot should be changed to honor the signature change in the getBlogs method.
+When we run ApplicationTest, we will notice that the anonymous class extending from AutomaticQuoteBot should be changed to honor the signature change in the getBlogs method.
 
-All this changes can be commited.
+All these changes can be committed.
+
+## Fixing bugs
+
+In order to be able to fix some bugs in the code we need to have a test that describes the current behavior, so we can change it safely. This is better achieved by unit testing the class in which we are interested. This will be BlogAuctionTask.
+
+The problem is that we have no idea about the expected behavior, so we will need to discover it via characterization tests. We will mock the behavior of collaborators with sensible values that can provide us with hints to interpret the outcomes.
+
+So, this will our first test. If we examine the code we can see the following:
+
+* We always add 1 to the average price provided by MarketDataProvider, so it could be safe to use 0.0 as first value, so that we can easily control the calculation method for proposal. 
+* This calculation method for proposal uses the condition of initial proposal being odd or even, so we would need to check the two branches, by stubbing an appropriate value in MarketDataProvider. So, we should run the test with 0.0 and 1.0 as initial values.
+* Finally, the timestampDiff provided by ClockService is a multiplier factor. Best value for testing will be 1, that is neutral.
+
+```php
+class BlogAuctionTaskTest extends TestCase
+{
+	/** @test */
+	public function shouldGenerateAProposal(): void
+	{
+		$marketDataProvider = $this->createMock(MarketDataProvider::class);
+		$marketDataProvider->method('averagePrice')->willReturn(0.0);
+		
+		$publisher = new PublisherSpy;
+
+		$clockService    = $this->createMock(ClockService::class);
+		$clockService->method('timestampDiff')->willReturn(1);
+		
+		$blogAuctionTask = new BlogAuctionTask($marketDataProvider, $publisher, $clockService);
+		
+		$blogAuctionTask->priceAndPublish('A blog', new Mode('SLOW'));
+		
+		$proposals = $publisher->proposals();
+		
+		self::assertEquals(10, $proposals[0]);
+	}
+}
+```
+
+10 in the assertion is a tentative value. We will run the test in order to discover this value. Once the test is passing, we will refactor the test to make easier to explore the different scenarios.
+
+This is the result:
+
+```
+Failed asserting that 6.3 matches expected 10.
+Expected :10
+Actual   :6.3
+```
+
+So, we change the test accordingly to make it pass. Now, I want to parametrize the test and use a data provider to make easier to add and changes test examples. This is the result, with two basic examples:
+
+```php
+class BlogAuctionTaskTest extends TestCase
+{
+	private MarketDataProvider $marketDataProvider;
+	private Publisher $publisher;
+	private ClockService $clockService;
+	private BlogAuctionTask $blogAuctionTask;
+
+	protected function setUp(): void
+	{
+		$this->marketDataProvider = $this->createMock(MarketDataProvider::class);
+		$this->publisher          = new PublisherSpy;
+		$this->clockService       = $this->createMock(ClockService::class);
+		$this->blogAuctionTask    = new BlogAuctionTask($this->marketDataProvider, $this->publisher, $this->clockService);
+	}
+
+	/** @test
+	 * @dataProvider examplesProvider
+	 */
+	public function shouldGenerateAProposal(float $averagePrice, int $timestampDiff, float $proposalAmount): void
+	{
+		$this->marketDataProvider->method('averagePrice')->willReturn($averagePrice);
+		$this->clockService->method('timestampDiff')->willReturn($timestampDiff);
+
+		$this->blogAuctionTask->priceAndPublish('A blog', new Mode('SLOW'));
+
+		$this->assertProposalAmount($proposalAmount);
+	}
+
+	public function examplesProvider(): array
+	{
+		return [
+			'Odd method' => [0.0, 1, 6.3],
+			'Even method' => [1.0, 1, 6.28]
+		];
+	}
+
+	protected function assertProposalAmount(float $proposalAmount): void
+	{
+		$proposals = $this->publisher->proposals();
+
+		self::assertEquals($proposalAmount, $proposals[0]);
+	}
+}
+```
+
+Now, it's time to address the FIXME:
+
+```
+		// FIXME should actually be +2 not +1
+
+		$proposal = $avgPrice + 1;
+```
+
+With the current state of the code, starting with an average price of 0.0, the initial value of proposal will be 1.0. The calculation method will throw 3.15 * 2 = 6.3.
+
+Applying the fix, the proposal should be 6.28, because the initial value of proposal will be 2.0. So the calculation will be 3.14 * 2 = 6.28.
+
+For an average price of 1.0, instead, the initial value of the proposal with the fix, will be 3.0, and the calculation will be 3.15 * 2 = 6.3.
+
+So, we can change the dataProvider to reflect the desired expected behavior.
+
+```php
+public function examplesProvider(): array
+{
+    return [
+        'Odd method' => [0.0, 1, 6.28],
+        'Even method' => [1.0, 1, 6.30]
+    ];
+}
+```
+
+As expected, the test will fail, so we apply the fix in production code.
+
+```php
+// FIXME should actually be +2 not +1
+
+$proposal = $avgPrice + 2;
+```
+With this applied, all the tests pass again. So we can remove the FIXME comment and reorganize a bit the code in this part to keep together related things.
+
+```php
+	public function priceAndPublish(string $blog, Mode $mode): void
+	{
+		$avgPrice = $this->averagePrice($blog);
+
+		$timeFactor = $mode->timeFactor();
+		$proposal = $avgPrice + 2;
+		$proposal = $proposal % 2 === 0
+			? 3.14 * $proposal
+			: 3.15 * $timeFactor * $this->timestampDiff('2000-1-1');
+
+		$this->publishProposal($proposal);
+	}
+```
+
+In this code fragment, I wanted to stress the proposal calculation. It can be isolated this way:
+
+```php
+namespace Quotebot;
+
+use Quotebot\Domain\ClockService;
+use Quotebot\Domain\MarketDataProvider;
+use Quotebot\Domain\Mode;
+use Quotebot\Domain\Publisher;
+
+class BlogAuctionTask
+{
+	private MarketDataProvider $marketDataRetriever;
+	private Publisher $publisher;
+	private ClockService $clockService;
+
+	public function __construct(
+		MarketDataProvider $marketStudyVendor,
+		Publisher $publisher,
+		ClockService $clockService
+	) {
+		$this->marketDataRetriever = $marketStudyVendor;
+		$this->publisher           = $publisher;
+		$this->clockService        = $clockService;
+	}
+
+	public function priceAndPublish(string $blog, Mode $mode): void
+	{
+		$avgPrice = $this->averagePrice($blog);
+
+		$proposal = $this->proposal($mode, $avgPrice);
+
+		$this->publishProposal($proposal);
+	}
+
+	private function publishProposal($proposal): void
+	{
+		$this->publisher->publishProposal($proposal);
+	}
+
+	private function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+
+	protected function proposal(Mode $mode, float $avgPrice)
+	{
+		$timeFactor = $mode->timeFactor();
+		$proposal   = $avgPrice + 2;
+		
+		return $proposal % 2 === 0
+			? 3.14 * $proposal
+			: 3.15 * $timeFactor * $this->timestampDiff('2000-1-1');
+	}
+
+	private function timestampDiff(string $since): int
+	{
+		return $this->clockService->timestampDiff($since);
+	}
+}
+```
+
+It seems that we have a good chance to move this out of BlogAuctionTask. Given we have a test that covers the class, we can extract it safely. We will need to change the test, and the run.php script to reflect the new construction.
+
+This is the extracted class:
+
+```php
+namespace Quotebot\Domain;
+
+
+class CalculateProposal
+{
+	private ClockService $clockService;
+
+	public function __construct(ClockService $clockService)
+	{
+		$this->clockService = $clockService;
+	}
+
+	public function proposal(Mode $mode, float $avgPrice)
+	{
+		$timeFactor = $mode->timeFactor();
+
+		$proposal   = $avgPrice + 2;
+
+		return $proposal % 2 === 0
+			? 3.14 * $proposal
+			: 3.15 * $timeFactor * $this->timestampDiff('2000-1-1');
+	}
+
+	public function timestampDiff(string $since): int
+	{
+		return $this->clockService->timestampDiff($since);
+	}
+}
+```

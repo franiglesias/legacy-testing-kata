@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Quotebot\Application;
 use Quotebot\AutomaticQuoteBot;
 use Quotebot\BlogAuctionTask;
+use Quotebot\Domain\CalculateProposal;
 use Quotebot\Domain\ClockService;
 use Quotebot\Domain\MarketDataProvider;
 use Quotebot\Domain\Mode;
@@ -20,15 +21,17 @@ class ApplicationTest extends TestCase
 		$marketDataProvider = $this->createMock(MarketDataProvider::class);
 		$marketDataProvider->method('averagePrice')->willReturn(0.0);
 
-		$publisherSpy    = new PublisherSpy;
+		$publisherSpy = new PublisherSpy;
 
-		$clockService    = $this->createMock(ClockService::class);
+		$clockService = $this->createMock(ClockService::class);
 		$clockService->method('timestampDiff')->willReturn(0);
+
+		$calculateProposal = new CalculateProposal($clockService);
 
 		$blogAuctionTask = new BlogAuctionTask(
 			$marketDataProvider,
 			$publisherSpy,
-			$clockService
+			$calculateProposal
 		);
 		$quoteBot        = $this->buildQuoteBot($blogAuctionTask, ['Blog 1', 'Blog 2']);
 
