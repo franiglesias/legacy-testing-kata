@@ -7,6 +7,7 @@ use Quotebot\Application\SendAllQuotesHandler;
 use Quotebot\BlogAuctionTask;
 use Quotebot\Domain\CalculateProposal;
 use Quotebot\Infrastructure\SystemClockService;
+use Quotebot\Infrastructure\VendorGetAdSpaces;
 use Quotebot\Infrastructure\VendorMarketDataProvider;
 use Quotebot\Infrastructure\VendorQuotePublisher;
 
@@ -21,7 +22,11 @@ $blogAuctionTask      = new BlogAuctionTask(
 	$publisher,
 	$calculateProposal
 );
-$sendAllQuotesHandler = new SendAllQuotesHandler($blogAuctionTask);
+$getAdSpaces          = new VendorGetAdSpaces;
+$sendAllQuotesHandler = new SendAllQuotesHandler(
+	$blogAuctionTask,
+	$getAdSpaces
+);
 
 Application::injectBot($sendAllQuotesHandler);
 Application::main();

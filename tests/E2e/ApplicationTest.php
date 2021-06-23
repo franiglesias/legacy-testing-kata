@@ -9,8 +9,8 @@ use Quotebot\Application\SendAllQuotesHandler;
 use Quotebot\BlogAuctionTask;
 use Quotebot\Domain\CalculateProposal;
 use Quotebot\Domain\ClockService;
+use Quotebot\Domain\GetAdSpaces;
 use Quotebot\Domain\MarketDataProvider;
-use Quotebot\Domain\Mode;
 use Quotebot\Tests\E2e\Doubles\PublisherSpy;
 
 class ApplicationTest extends TestCase
@@ -43,19 +43,9 @@ class ApplicationTest extends TestCase
 
 	private function buildSendAllQuotesHandler(BlogAuctionTask $blogAuctionTask, array $blogs): SendAllQuotesHandler
 	{
-		return new class($blogAuctionTask, $blogs) extends SendAllQuotesHandler {
-			private array $blogs;
+		$getAdSpaces = $this->createMock(GetAdSpaces::class);
+		$getAdSpaces->method('all')->willReturn($blogs);
 
-			public function __construct(BlogAuctionTask $blogAuctionTask, array $blogs)
-			{
-				$this->blogs = $blogs;
-				parent::__construct($blogAuctionTask);
-			}
-
-			protected function getBlogs(Mode $mode): array
-			{
-				return $this->blogs;
-			}
-		};
+		return new SendAllQuotesHandler($blogAuctionTask, $getAdSpaces);
 	}
 }

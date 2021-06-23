@@ -4,17 +4,19 @@ declare(strict_types=1);
 namespace Quotebot\Application;
 
 
-use Quotebot\AdSpace;
 use Quotebot\BlogAuctionTask;
+use Quotebot\Domain\GetAdSpaces;
 use Quotebot\Domain\Mode;
 
 class SendAllQuotesHandler
 {
 	private BlogAuctionTask $blogAuctionTask;
+	private GetAdSpaces $getAdSpaces;
 
-	public function __construct(BlogAuctionTask $blogAuctionTask)
+	public function __construct(BlogAuctionTask $blogAuctionTask, GetAdSpaces $getAdSpaces)
 	{
 		$this->blogAuctionTask = $blogAuctionTask;
+		$this->getAdSpaces     = $getAdSpaces;
 	}
 
 	public function __invoke(SendAllQuotes $sendAllQuotes): void
@@ -26,14 +28,14 @@ class SendAllQuotesHandler
 	{
 		$mode = new Mode($rawMode);
 
-		$blogs = $this->getBlogs($mode);
+		$blogs = $this->getBlogs();
 		foreach ($blogs as $blog) {
 			$this->blogAuctionTask->priceAndPublish($blog, $mode);
 		}
 	}
 
-	protected function getBlogs(Mode $mode)
+	protected function getBlogs()
 	{
-		return AdSpace::getAdSpaces((string)$mode);
+		return $this->getAdSpaces->all();
 	}
 }

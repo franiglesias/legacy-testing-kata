@@ -2198,3 +2198,66 @@ Application::main();
 ```
 
 At this point, both tests and the application should run with no problems. So we can remove `AutomaticQuoteBot`, and commit the changes.
+
+We need to manage the AdSpace dependency, because we are not properly testing the system yet. Here we have two problems: AdSpace itself, and its dependency on TechBlogs. Anyway, we can start by extracting and injecting the dependency on AdSpace, and work on improving its design afterwards.
+
+Here is the class extracted with some refactoring applied.
+
+```php
+namespace Quotebot\Domain;
+
+
+use Quotebot\AdSpace;
+
+class GetAdSpaces
+{
+
+	public function all()
+	{
+		return AdSpace::getAdSpaces();
+	}
+}
+```
+
+To invert the dependency, we need to extract an interface.
+
+```php
+class ApplicationTest extends TestCase
+{
+	/** @test */
+	public function shouldPublishOneProposalForEachBlog(): void
+	{
+		$marketDataProvider = $this->createMock(MarketDataProvider::class);
+		$marketDataProvider->method('averagePrice')->willReturn(0.0);
+
+		$publisherSpy = new PublisherSpy;
+
+		$clockService = $this->createMock(ClockService::class);
+		$clockService->method('timestampDiff')->willReturn(0);
+
+		$calculateProposal = new CalculateProposal($clockService);
+
+		$blogAuctionTask = new BlogAuctionTask(
+			$marketDataProvider,
+			$publisherSpy,
+			$calculateProposal
+		);
+		$quoteBot        = $this->buildSendAllQuotesHandler($blogAuctionTask, ['Blog 1', 'Blog 2']);
+
+		Application::injectBot($quoteBot);
+		Application::main();
+
+		self::assertCount(2, $publisherSpy->proposals());
+	}
+
+	private function buildSendAllQuotesHandler(BlogAuctionTask $blogAuctionTask, array $blogs): SendAllQuotesHandler
+	{
+		$getAdSpaces = $this->createMock(GetAdSpaces::class);
+		$getAdSpaces->method('all')->willReturn($blogs);
+
+		return new SendAllQuotesHandler($blogAuctionTask, $getAdSpaces);
+	}
+}
+```
+
+Let's commit the changes.
