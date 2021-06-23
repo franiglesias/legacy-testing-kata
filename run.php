@@ -3,7 +3,7 @@
 require 'vendor/autoload.php';
 
 use Quotebot\Application;
-use Quotebot\AutomaticQuoteBot;
+use Quotebot\Application\SendAllQuotesHandler;
 use Quotebot\BlogAuctionTask;
 use Quotebot\Domain\CalculateProposal;
 use Quotebot\Infrastructure\SystemClockService;
@@ -16,12 +16,12 @@ $publisher          = new VendorQuotePublisher;
 $clockService      = new SystemClockService;
 $calculateProposal = new CalculateProposal($clockService);
 
-$blogAuctionTask   = new BlogAuctionTask(
+$blogAuctionTask      = new BlogAuctionTask(
 	$marketDataProvider,
 	$publisher,
 	$calculateProposal
 );
-$automaticQuoteBot = new AutomaticQuoteBot($blogAuctionTask);
+$sendAllQuotesHandler = new SendAllQuotesHandler($blogAuctionTask);
 
-Application::injectBot($automaticQuoteBot);
+Application::injectBot($sendAllQuotesHandler);
 Application::main();

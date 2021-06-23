@@ -5,7 +5,7 @@ namespace Quotebot\Tests\E2e;
 
 use PHPUnit\Framework\TestCase;
 use Quotebot\Application;
-use Quotebot\AutomaticQuoteBot;
+use Quotebot\Application\SendAllQuotesHandler;
 use Quotebot\BlogAuctionTask;
 use Quotebot\Domain\CalculateProposal;
 use Quotebot\Domain\ClockService;
@@ -33,7 +33,7 @@ class ApplicationTest extends TestCase
 			$publisherSpy,
 			$calculateProposal
 		);
-		$quoteBot        = $this->buildQuoteBot($blogAuctionTask, ['Blog 1', 'Blog 2']);
+		$quoteBot        = $this->buildSendAllQuotesHandler($blogAuctionTask, ['Blog 1', 'Blog 2']);
 
 		Application::injectBot($quoteBot);
 		Application::main();
@@ -41,9 +41,9 @@ class ApplicationTest extends TestCase
 		self::assertCount(2, $publisherSpy->proposals());
 	}
 
-	private function buildQuoteBot(BlogAuctionTask $blogAuctionTask, array $blogs): AutomaticQuoteBot
+	private function buildSendAllQuotesHandler(BlogAuctionTask $blogAuctionTask, array $blogs): SendAllQuotesHandler
 	{
-		return new class($blogAuctionTask, $blogs) extends AutomaticQuoteBot {
+		return new class($blogAuctionTask, $blogs) extends SendAllQuotesHandler {
 			private array $blogs;
 
 			public function __construct(BlogAuctionTask $blogAuctionTask, array $blogs)

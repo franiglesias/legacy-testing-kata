@@ -1,10 +1,14 @@
 <?php
+declare(strict_types=1);
 
-namespace Quotebot;
+namespace Quotebot\Application;
 
+
+use Quotebot\AdSpace;
+use Quotebot\BlogAuctionTask;
 use Quotebot\Domain\Mode;
 
-class AutomaticQuoteBot
+class SendAllQuotesHandler
 {
 	private BlogAuctionTask $blogAuctionTask;
 
@@ -13,7 +17,12 @@ class AutomaticQuoteBot
 		$this->blogAuctionTask = $blogAuctionTask;
 	}
 
-	public function sendAllQuotes(string $rawMode): void
+	public function __invoke(SendAllQuotes $sendAllQuotes): void
+	{
+		$this->sendAllQuotes($sendAllQuotes->getRawMode());
+	}
+
+	private function sendAllQuotes(string $rawMode): void
 	{
 		$mode = new Mode($rawMode);
 

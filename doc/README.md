@@ -2025,3 +2025,176 @@ class CalculateProposal
 	}
 }
 ```
+
+## Application intent: introducing use case
+
+We started putting organizing things in a layered architecture, reflecting Domain and Infrastructure concerns. What we don't have yet is a layer to express user intentions.
+
+The user intent in this application is to generate and publish proposals to buy advertisement spaces in different blogs. That intention is fulfilled by `AutomaticQuoteBot`, so we can start from there.
+
+We could simply move the class to a new Application folder and rename it to better reflect the intent. Instead of that, we are going to proceed with a more systematic approach. 
+
+The use case will be implemented using the Command/CommandHandler pattern. Then we simply copy and adapt the code inside AutomaticQuoteBot.
+
+First, the command:
+
+```php
+namespace Quotebot\Application;
+
+
+class SendAllQuotes
+{
+	private string $rawMode;
+
+	public function __construct(string $rawMode)
+	{
+		$this->rawMode = $rawMode;
+	}
+
+	public function getRawMode(): string
+	{
+		return $this->rawMode;
+	}
+}
+```
+
+The handler:
+
+```php
+namespace Quotebot\Application;
+
+
+use Quotebot\AdSpace;
+use Quotebot\BlogAuctionTask;
+use Quotebot\Domain\Mode;
+
+class SendAllQuotesHandler
+{
+	private BlogAuctionTask $blogAuctionTask;
+
+	public function __construct(BlogAuctionTask $blogAuctionTask)
+	{
+		$this->blogAuctionTask = $blogAuctionTask;
+	}
+	
+	public function __invoke(SendAllQuotes $sendAllQuotes): void
+	{
+		$this->sendAllQuotes($sendAllQuotes->getRawMode());
+	}
+
+	private function sendAllQuotes(string $rawMode): void
+	{
+		$mode = new Mode($rawMode);
+
+		$blogs = $this->getBlogs($mode);
+		foreach ($blogs as $blog) {
+			$this->blogAuctionTask->priceAndPublish($blog, $mode);
+		}
+	}
+
+	protected function getBlogs(Mode $mode)
+	{
+		return AdSpace::getAdSpaces((string)$mode);
+	}
+}
+```
+
+Now, we have to replace uses of `AutomaticQuoteBot` in code:
+
+```php
+class ApplicationTest extends TestCase
+{
+	/** @test */
+	public function shouldPublishOneProposalForEachBlog(): void
+	{
+		$marketDataProvider = $this->createMock(MarketDataProvider::class);
+		$marketDataProvider->method('averagePrice')->willReturn(0.0);
+
+		$publisherSpy = new PublisherSpy;
+
+		$clockService = $this->createMock(ClockService::class);
+		$clockService->method('timestampDiff')->willReturn(0);
+
+		$calculateProposal = new CalculateProposal($clockService);
+
+		$blogAuctionTask = new BlogAuctionTask(
+			$marketDataProvider,
+			$publisherSpy,
+			$calculateProposal
+		);
+		$quoteBot        = $this->buildSendAllQuotesHandler($blogAuctionTask, ['Blog 1', 'Blog 2']);
+
+		Application::injectBot($quoteBot);
+		Application::main();
+
+		self::assertCount(2, $publisherSpy->proposals());
+	}
+
+	private function buildSendAllQuotesHandler(BlogAuctionTask $blogAuctionTask, array $blogs): SendAllQuotesHandler
+	{
+		return new class($blogAuctionTask, $blogs) extends SendAllQuotesHandler {
+			private array $blogs;
+
+			public function __construct(BlogAuctionTask $blogAuctionTask, array $blogs)
+			{
+				$this->blogs = $blogs;
+				parent::__construct($blogAuctionTask);
+			}
+
+			protected function getBlogs(Mode $mode): array
+			{
+				return $this->blogs;
+			}
+		};
+	}
+}
+```
+
+`Application`:
+
+```php
+use Quotebot\Application\SendAllQuotes;
+use Quotebot\Application\SendAllQuotesHandler;
+
+class Application
+{
+	private static ?SendAllQuotesHandler $handler;
+
+	public static function injectBot(SendAllQuotesHandler $handler): void
+	{
+		self::$handler = $handler;
+	}
+
+	/** main application method */
+    public static function main(array $args = null): void
+	{
+    	if (null === self::$handler) {
+    		self::$handler = new SendAllQuotesHandler();
+		}
+
+        (self::$handler)(new SendAllQuotes('FAST'));
+    }
+}
+```
+
+Also, run.php:
+
+```php
+$marketDataProvider = new VendorMarketDataProvider(new MarketStudyVendor);
+$publisher          = new VendorQuotePublisher;
+
+$clockService      = new SystemClockService;
+$calculateProposal = new CalculateProposal($clockService);
+
+$blogAuctionTask      = new BlogAuctionTask(
+	$marketDataProvider,
+	$publisher,
+	$calculateProposal
+);
+$sendAllQuotesHandler = new SendAllQuotesHandler($blogAuctionTask);
+
+Application::injectBot($sendAllQuotesHandler);
+Application::main();
+```
+
+At this point, both tests and the application should run with no problems. So we can remove `AutomaticQuoteBot`, and commit the changes.

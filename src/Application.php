@@ -2,22 +2,25 @@
 
 namespace Quotebot;
 
+use Quotebot\Application\SendAllQuotes;
+use Quotebot\Application\SendAllQuotesHandler;
+
 class Application
 {
-	private static ?AutomaticQuoteBot $quoteBot;
+	private static ?SendAllQuotesHandler $handler;
 
-	public static function injectBot(AutomaticQuoteBot $quoteBot): void
+	public static function injectBot(SendAllQuotesHandler $handler): void
 	{
-		self::$quoteBot = $quoteBot;
+		self::$handler = $handler;
 	}
 
 	/** main application method */
     public static function main(array $args = null): void
 	{
-    	if (null === self::$quoteBot) {
-    		self::$quoteBot = new AutomaticQuoteBot();
+    	if (null === self::$handler) {
+    		self::$handler = new SendAllQuotesHandler();
 		}
 
-        self::$quoteBot->sendAllQuotes('FAST');
+        (self::$handler)(new SendAllQuotes('FAST'));
     }
 }
