@@ -2,12 +2,18 @@
 
 namespace Quotebot;
 
+use Quotebot\Application\SendAllQuotes;
+use Quotebot\Application\SendAllQuotesHandler;
+
 class Application
 {
     /** main application method */
     public static function main(array $args = null)
     {
-        $bot = new AutomaticQuoteBot();
-        $bot->sendAllQuotes('FAST');
-    }
+		$sendAllQuotes = new SendAllQuotes('FAST');
+
+		$sendAllQuotesHandler = new SendAllQuotesHandler(new AutomaticQuoteBot);
+
+		($sendAllQuotesHandler)($sendAllQuotes);
+	}
 }
