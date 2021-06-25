@@ -2,47 +2,48 @@
 
 namespace Quotebot;
 
-use MarketStudyVendor;
+use Quotebot\Domain\CalculateProposal;
+use Quotebot\Domain\MarketDataProvider;
+use Quotebot\Domain\Mode;
+use Quotebot\Domain\Publisher;
 
 class BlogAuctionTask
 {
-    /** @var MarketStudyVendor */
-    private $marketDataRetriever;
+	private MarketDataProvider $marketDataRetriever;
+	private Publisher $publisher;
+	private CalculateProposal $calculateProposal;
 
-    public function __construct()
-    {
-        $this->marketDataRetriever = new MarketStudyVendor();
-    }
+	public function __construct(
+		MarketDataProvider $marketStudyVendor,
+		Publisher $publisher,
+		CalculateProposal $calculateProposal
+	) {
+		$this->marketDataRetriever = $marketStudyVendor;
+		$this->publisher           = $publisher;
+		$this->calculateProposal   = $calculateProposal;
+	}
 
-    public function priceAndPublish(string $blog, string $mode)
-    {
-        $avgPrice = $this->marketDataRetriever->averagePrice($blog);
+	public function priceAndPublish(string $blog, Mode $mode): void
+	{
+		$avgPrice = $this->averagePrice($blog);
 
-        // FIXME should actually be +2 not +1
+		$proposal = $this->proposal($mode, $avgPrice);
 
-        $proposal = $avgPrice + 1;
-        $timeFactor = 1;
+		$this->publishProposal($proposal);
+	}
 
-        if ($mode === 'SLOW') {
-            $timeFactor = 2;
-        }
+	private function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
 
-        if ($mode === 'MEDIUM') {
-            $timeFactor = 4;
-        }
+	private function proposal(Mode $mode, float $avgPrice)
+	{
+		return $this->calculateProposal->proposal($mode, $avgPrice);
+	}
 
-        if ($mode === 'FAST') {
-            $timeFactor = 8;
-        }
-
-        if ($mode === 'ULTRAFAST') {
-            $timeFactor = 13;
-        }
-
-        $proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
-            * $timeFactor
-            * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
-
-        \QuotePublisher::publish($proposal);
-    }
+	private function publishProposal($proposal): void
+	{
+		$this->publisher->publishProposal($proposal);
+	}
 }
