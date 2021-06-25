@@ -4,12 +4,23 @@ namespace Quotebot;
 
 class AutomaticQuoteBot
 {
-    public function sendAllQuotes(string $mode): void
+	private BlogAuctionTask $blogAuctionTask;
+
+	public function __construct(?BlogAuctionTask $blogAuctionTask = null)
+	{
+		$this->blogAuctionTask = $blogAuctionTask ?? new BlogAuctionTask;
+	}
+
+	public function sendAllQuotes(string $mode): void
     {
-        $blogs = AdSpace::getAdSpaces($mode);
-        foreach ($blogs as $blog) {
-            $blogAuctionTask = new BlogAuctionTask();
-            $blogAuctionTask->priceAndPublish($blog, $mode);
+		$blogs = $this->retrieveBlogs();
+		foreach ($blogs as $blog) {
+            $this->blogAuctionTask->priceAndPublish($blog, $mode);
         }
     }
+
+	protected function retrieveBlogs()
+	{
+		return AdSpace::getAdSpaces();
+	}
 }

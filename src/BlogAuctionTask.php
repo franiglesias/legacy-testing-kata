@@ -16,9 +16,9 @@ class BlogAuctionTask
 
     public function priceAndPublish(string $blog, string $mode)
     {
-        $avgPrice = $this->marketDataRetriever->averagePrice($blog);
+		$avgPrice = $this->averagePrice($blog);
 
-        // FIXME should actually be +2 not +1
+		// FIXME should actually be +2 not +1
 
         $proposal = $avgPrice + 1;
         $timeFactor = 1;
@@ -43,6 +43,16 @@ class BlogAuctionTask
             * $timeFactor
             * (new \DateTime())->getTimestamp() - (new \DateTime('2000-1-1'))->getTimestamp();
 
-        \QuotePublisher::publish($proposal);
-    }
+		$this->publishProposal($proposal);
+	}
+
+	protected function averagePrice(string $blog): float
+	{
+		return $this->marketDataRetriever->averagePrice($blog);
+	}
+
+	protected function publishProposal($proposal): void
+	{
+		\QuotePublisher::publish($proposal);
+	}
 }
