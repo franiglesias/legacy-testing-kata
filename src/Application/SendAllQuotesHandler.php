@@ -5,6 +5,7 @@ namespace Quotebot\Application;
 
 
 use Quotebot\AutomaticQuoteBot;
+use Quotebot\Domain\Mode;
 
 class SendAllQuotesHandler
 {
@@ -18,6 +19,8 @@ class SendAllQuotesHandler
 
 	public function __invoke(SendAllQuotes $sendAllQuotes): void
 	{
-		$this->automaticQuoteBot->sendAllQuotes($sendAllQuotes->getMode());
+		$mode = new Mode($sendAllQuotes->getMode());
+
+		$this->automaticQuoteBot->sendAllQuotes($mode);
 	}
 }

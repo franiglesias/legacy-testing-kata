@@ -10,11 +10,10 @@ class Application
     /** main application method */
     public static function main(array $args = null)
     {
-        $bot = new AutomaticQuoteBot();
-        $sendAllQuotes = new SendAllQuotes('FAST');
+		$sendAllQuotes = new SendAllQuotes('FAST');
 
-        $sendAllQuotesHandler = new SendAllQuotesHandler($bot);
+		$sendAllQuotesHandler = new SendAllQuotesHandler(new AutomaticQuoteBot);
 
-        ($sendAllQuotesHandler)($sendAllQuotes);
-    }
+		($sendAllQuotesHandler)($sendAllQuotes);
+	}
 }

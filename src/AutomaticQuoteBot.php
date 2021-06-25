@@ -2,6 +2,8 @@
 
 namespace Quotebot;
 
+use Quotebot\Domain\Mode;
+
 class AutomaticQuoteBot
 {
 	private BlogAuctionTask $blogAuctionTask;
@@ -11,7 +13,7 @@ class AutomaticQuoteBot
 		$this->blogAuctionTask = $blogAuctionTask ?? new BlogAuctionTask;
 	}
 
-	public function sendAllQuotes(string $mode): void
+	public function sendAllQuotes(Mode $mode): void
     {
 		$blogs = $this->retrieveBlogs();
 		foreach ($blogs as $blog) {
