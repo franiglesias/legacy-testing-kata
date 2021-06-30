@@ -12,7 +12,7 @@ class BlogAuctionTaskTest extends TestCase
     /** @test
      * @dataProvider examplesProvider
      */
-    public function shouldRun(string $mode, float $averagePrice, float $proposal): void
+    public function shouldGenerateAProposal(string $mode, float $averagePrice, float $proposal): void
     {
         $blogAuctionTask = $this->getBlogAuctionTask($averagePrice);
 
@@ -26,10 +26,10 @@ class BlogAuctionTaskTest extends TestCase
     public function examplesProvider(): array
     {
         return [
-            'even slow' => ['SLOW', 0.0, 6.3],
-            'odd slow' => ['SLOW', 1.0, 6.28],
-            'even medium' => ['MEDIUM', 0.0, 12.6],
-            'odd medium' => ['MEDIUM', 1.0, 6.28],
+            'odd slow' => ['SLOW', 0.0, 6.28],
+            'even slow' => ['SLOW', 1.0, 6.3],
+            'odd medium' => ['MEDIUM', 0.0, 6.28],
+            'even medium' => ['MEDIUM', 1.0, 12.6],
         ];
     }
 

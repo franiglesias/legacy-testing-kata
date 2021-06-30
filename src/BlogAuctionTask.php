@@ -18,9 +18,7 @@ class BlogAuctionTask
     {
         $avgPrice = $this->averagePrice($blog);
 
-        // FIXME should actually be +2 not +1
-
-        $proposal = $avgPrice + 1;
+        $proposal = $avgPrice + 2;
         $timeFactor = 1;
 
         if ($mode === 'SLOW') {
