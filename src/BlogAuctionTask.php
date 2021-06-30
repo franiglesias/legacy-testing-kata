@@ -40,9 +40,9 @@ class BlogAuctionTask
         }
 
         $timeDiff = $this->timeDiff('2000-1-1');
-        $proposal = $proposal % 2 === 0 ? 3.14 * $proposal : 3.15
-            * $timeFactor
-            * $timeDiff;
+        $proposal = $proposal % 2 === 0
+            ? $this->evenProposalStrategy($proposal)
+            : $this->oddProposalStrategy($timeFactor, $timeDiff);
 
         $this->publishProposal($proposal);
     }
@@ -60,5 +60,15 @@ class BlogAuctionTask
     protected function publishProposal($proposal): void
     {
         \QuotePublisher::publish($proposal);
+    }
+
+    private function evenProposalStrategy($proposal): float
+    {
+        return 3.14 * $proposal;
+    }
+
+    private function oddProposalStrategy(int $timeFactor, int $timeDiff)
+    {
+        return 3.15 * $timeFactor * $timeDiff;
     }
 }

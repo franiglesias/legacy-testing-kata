@@ -9,27 +9,44 @@ use RuntimeException;
 
 class BlogAuctionTaskTest extends TestCase
 {
-    /** @test */
-    public function shouldRun(): void
+    /** @test
+     * @dataProvider examplesProvider
+     */
+    public function shouldRun(string $mode, float $averagePrice, float $proposal): void
     {
-        $blogAuctionTask = $this->getBlogAuctionTask();
+        $blogAuctionTask = $this->getBlogAuctionTask($averagePrice);
 
         $blog = 'Blog Example';
-        $mode = 'SLOW';
 
         $blogAuctionTask->priceAndPublish($blog, $mode);
 
-        self::assertEquals(6.3, $blogAuctionTask->proposal());
+        self::assertEquals($proposal, $blogAuctionTask->proposal());
     }
 
-    private function getBlogAuctionTask(): BlogAuctionTask
+    public function examplesProvider(): array
     {
-        $blogAuctionTask = new class() extends BlogAuctionTask {
+        return [
+            'even slow' => ['SLOW', 0.0, 6.3],
+            'odd slow' => ['SLOW', 1.0, 6.28],
+            'even medium' => ['MEDIUM', 0.0, 12.6],
+            'odd medium' => ['MEDIUM', 1.0, 6.28],
+        ];
+    }
+
+    private function getBlogAuctionTask(float $averagePrice): BlogAuctionTask
+    {
+        $blogAuctionTask = new class($averagePrice) extends BlogAuctionTask {
             private $proposal;
+            private $averagePrice;
+
+            public function __construct(float $averagePrice)
+            {
+                $this->averagePrice = $averagePrice;
+            }
 
             protected function averagePrice(string $blog): float
             {
-                return 0.0;
+                return $this->averagePrice;
             }
 
             protected function timeDiff(string $fromDate): int
