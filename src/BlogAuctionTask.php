@@ -4,6 +4,7 @@ namespace Quotebot;
 
 use MarketStudyVendor;
 use Quotebot\Domain\Blog;
+use Quotebot\Domain\Mode;
 
 class BlogAuctionTask
 {
@@ -23,8 +24,9 @@ class BlogAuctionTask
     public function priceAndPublish(string $blogName, string $modeName): void
     {
         $blog = new Blog($blogName);
+        $mode = new Mode($modeName);
 
-        $proposal = $this->calculateProposal($blog, $modeName);
+        $proposal = $this->calculateProposal($blog, $mode);
 
         $this->publishProposal($proposal);
     }
@@ -49,35 +51,11 @@ class BlogAuctionTask
         return self::EVEN_COEFFICIENT * $proposal;
     }
 
-    private function oddProposalStrategy(string $mode)
+    private function oddProposalStrategy(Mode $mode)
     {
-        $timeFactor = $this->timeFactor($mode);
-        $timeDiff = $this->timeDiff(self::FROM_DATE);
-
-        return self::ODD_COEFFICIENT * $timeFactor * $timeDiff;
-    }
-
-    private function timeFactor(string $mode): int
-    {
-        $timeFactor = 1;
-
-        if ($mode === 'SLOW') {
-            $timeFactor = 2;
-        }
-
-        if ($mode === 'MEDIUM') {
-            $timeFactor = 4;
-        }
-
-        if ($mode === 'FAST') {
-            $timeFactor = 8;
-        }
-
-        if ($mode === 'ULTRAFAST') {
-            $timeFactor = 13;
-        }
-
-        return $timeFactor;
+        return self::ODD_COEFFICIENT
+            * $mode->timeFactor()
+            * $this->timeDiff(self::FROM_DATE);
     }
 
     private function isEven($proposal): bool
@@ -90,14 +68,12 @@ class BlogAuctionTask
         return $this->averagePrice($blog) + self::PRICE_CORRECTION;
     }
 
-    private function calculateProposal(Blog $blog, string $mode)
+    private function calculateProposal(Blog $blog, Mode $mode)
     {
         $proposal = $this->correctedAveragePrice($blog);
 
-        $proposal = $this->isEven($proposal)
+        return $this->isEven($proposal)
             ? $this->evenProposalStrategy($proposal)
             : $this->oddProposalStrategy($mode);
-
-        return $proposal;
     }
 }
