@@ -21,14 +21,8 @@ class BlogAuctionTask
 
     public function priceAndPublish(string $blog, string $mode): void
     {
-        // price
-        $proposal = $this->correctedAveragePrice($blog);
+        $proposal = $this->calculateProposal($blog, $mode);
 
-        $proposal = $this->isEven($proposal)
-            ? $this->evenProposalStrategy($proposal)
-            : $this->oddProposalStrategy($mode);
-
-        // publish
         $this->publishProposal($proposal);
     }
 
@@ -91,5 +85,16 @@ class BlogAuctionTask
     private function correctedAveragePrice(string $blog)
     {
         return $this->averagePrice($blog) + self::PRICE_CORRECTION;
+    }
+
+    private function calculateProposal(string $blog, string $mode)
+    {
+        $proposal = $this->correctedAveragePrice($blog);
+
+        $proposal = $this->isEven($proposal)
+            ? $this->evenProposalStrategy($proposal)
+            : $this->oddProposalStrategy($mode);
+
+        return $proposal;
     }
 }
