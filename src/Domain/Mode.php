@@ -5,34 +5,33 @@ namespace Quotebot\Domain;
 
 class Mode
 {
+    private const SLOW = 'SLOW';
+    private const MEDIUM = 'MEDIUM';
+    private const FAST = 'FAST';
+    private const ULTRAFAST = 'ULTRAFAST';
+    private const UNKNOWN = 'UNKNOWN';
+
+    private const TIME_FACTOR_MAP = [
+        self::UNKNOWN => 1,
+        self::SLOW => 2,
+        self::MEDIUM => 4,
+        self::FAST => 8,
+        self::ULTRAFAST => 13,
+    ];
 
     private $mode;
 
     public function __construct(string $mode)
     {
-        $this->mode = $mode;
+        $mode = strtoupper($mode);
+
+        $this->mode = ! isset(self::TIME_FACTOR_MAP[$mode])
+            ? self::UNKNOWN
+            : $mode;
     }
 
     public function timeFactor(): int
     {
-        $timeFactor = 1;
-
-        if ($this->mode === 'SLOW') {
-            $timeFactor = 2;
-        }
-
-        if ($this->mode === 'MEDIUM') {
-            $timeFactor = 4;
-        }
-
-        if ($this->mode === 'FAST') {
-            $timeFactor = 8;
-        }
-
-        if ($this->mode === 'ULTRAFAST') {
-            $timeFactor = 13;
-        }
-
-        return $timeFactor;
+        return self::TIME_FACTOR_MAP[$this->mode];
     }
 }
