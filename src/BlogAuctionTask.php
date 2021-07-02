@@ -6,6 +6,11 @@ use MarketStudyVendor;
 
 class BlogAuctionTask
 {
+    private const PRICE_CORRECTION = 2;
+    private const EVEN_COEFFICIENT = 3.14;
+    private const ODD_COEFFICIENT = 3.15;
+    private const FROM_DATE = '2000-1-1';
+
     /** @var MarketStudyVendor */
     private $marketDataRetriever;
 
@@ -14,34 +19,16 @@ class BlogAuctionTask
         $this->marketDataRetriever = new MarketStudyVendor();
     }
 
-    public function priceAndPublish(string $blog, string $mode)
+    public function priceAndPublish(string $blog, string $mode): void
     {
-        $avgPrice = $this->averagePrice($blog);
+        // price
+        $proposal = $this->correctedAveragePrice($blog);
 
-        $proposal = $avgPrice + 2;
-        $timeFactor = 1;
-
-        if ($mode === 'SLOW') {
-            $timeFactor = 2;
-        }
-
-        if ($mode === 'MEDIUM') {
-            $timeFactor = 4;
-        }
-
-        if ($mode === 'FAST') {
-            $timeFactor = 8;
-        }
-
-        if ($mode === 'ULTRAFAST') {
-            $timeFactor = 13;
-        }
-
-        $timeDiff = $this->timeDiff('2000-1-1');
-        $proposal = $proposal % 2 === 0
+        $proposal = $this->isEven($proposal)
             ? $this->evenProposalStrategy($proposal)
-            : $this->oddProposalStrategy($timeFactor, $timeDiff);
+            : $this->oddProposalStrategy($mode);
 
+        // publish
         $this->publishProposal($proposal);
     }
 
@@ -62,11 +49,47 @@ class BlogAuctionTask
 
     private function evenProposalStrategy($proposal): float
     {
-        return 3.14 * $proposal;
+        return self::EVEN_COEFFICIENT * $proposal;
     }
 
-    private function oddProposalStrategy(int $timeFactor, int $timeDiff)
+    private function oddProposalStrategy(string $mode)
     {
-        return 3.15 * $timeFactor * $timeDiff;
+        $timeFactor = $this->timeFactor($mode);
+        $timeDiff = $this->timeDiff(self::FROM_DATE);
+
+        return self::ODD_COEFFICIENT * $timeFactor * $timeDiff;
+    }
+
+    private function timeFactor(string $mode): int
+    {
+        $timeFactor = 1;
+
+        if ($mode === 'SLOW') {
+            $timeFactor = 2;
+        }
+
+        if ($mode === 'MEDIUM') {
+            $timeFactor = 4;
+        }
+
+        if ($mode === 'FAST') {
+            $timeFactor = 8;
+        }
+
+        if ($mode === 'ULTRAFAST') {
+            $timeFactor = 13;
+        }
+
+        return $timeFactor;
+    }
+
+    private function isEven($proposal): bool
+    {
+        return $proposal % 2 === 0;
+    }
+
+    private function correctedAveragePrice(string $blog)
+    {
+        return $this->averagePrice($blog) + self::PRICE_CORRECTION;
     }
 }
