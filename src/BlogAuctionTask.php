@@ -3,6 +3,7 @@
 namespace Quotebot;
 
 use MarketStudyVendor;
+use Quotebot\Domain\Blog;
 
 class BlogAuctionTask
 {
@@ -19,16 +20,18 @@ class BlogAuctionTask
         $this->marketDataRetriever = new MarketStudyVendor();
     }
 
-    public function priceAndPublish(string $blog, string $mode): void
+    public function priceAndPublish(string $blogName, string $modeName): void
     {
-        $proposal = $this->calculateProposal($blog, $mode);
+        $blog = new Blog($blogName);
+
+        $proposal = $this->calculateProposal($blog, $modeName);
 
         $this->publishProposal($proposal);
     }
 
-    protected function averagePrice(string $blog): float
+    protected function averagePrice(Blog $blog): float
     {
-        return $this->marketDataRetriever->averagePrice($blog);
+        return $this->marketDataRetriever->averagePrice($blog->name());
     }
 
     protected function timeDiff(string $fromDate): int
@@ -82,12 +85,12 @@ class BlogAuctionTask
         return $proposal % 2 === 0;
     }
 
-    private function correctedAveragePrice(string $blog)
+    private function correctedAveragePrice(Blog $blog)
     {
         return $this->averagePrice($blog) + self::PRICE_CORRECTION;
     }
 
-    private function calculateProposal(string $blog, string $mode)
+    private function calculateProposal(Blog $blog, string $mode)
     {
         $proposal = $this->correctedAveragePrice($blog);
 

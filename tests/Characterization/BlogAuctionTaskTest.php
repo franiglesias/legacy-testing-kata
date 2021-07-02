@@ -5,6 +5,7 @@ namespace Quotebot\Tests\Characterization;
 
 use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
+use Quotebot\Domain\Blog;
 use RuntimeException;
 
 class BlogAuctionTaskTest extends TestCase
@@ -44,7 +45,7 @@ class BlogAuctionTaskTest extends TestCase
                 $this->averagePrice = $averagePrice;
             }
 
-            protected function averagePrice(string $blog): float
+            protected function averagePrice(Blog $blog): float
             {
                 return $this->averagePrice;
             }
