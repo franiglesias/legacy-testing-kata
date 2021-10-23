@@ -6,6 +6,7 @@ namespace Quotebot\Tests\Characterization;
 use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\Blog;
+use Quotebot\Domain\MarketStudyProvider;
 use RuntimeException;
 
 class BlogAuctionTaskTest extends TestCase
@@ -36,19 +37,23 @@ class BlogAuctionTaskTest extends TestCase
 
     private function getBlogAuctionTask(float $averagePrice): BlogAuctionTask
     {
-        $blogAuctionTask = new class($averagePrice) extends BlogAuctionTask {
-            private $proposal;
-            private $averagePrice;
+        $marketStudyProvider = new class($averagePrice) implements MarketStudyProvider {
+
+            private float $averagePrice;
 
             public function __construct(float $averagePrice)
             {
                 $this->averagePrice = $averagePrice;
             }
 
-            protected function averagePrice(Blog $blog): float
+            public function averagePrice(Blog $blog): float
             {
                 return $this->averagePrice;
             }
+        };
+
+        $blogAuctionTask = new class($marketStudyProvider) extends BlogAuctionTask {
+            private $proposal;
 
             protected function timeDiff(string $fromDate): int
             {

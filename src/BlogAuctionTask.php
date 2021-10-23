@@ -2,8 +2,8 @@
 
 namespace Quotebot;
 
-use MarketStudyVendor;
 use Quotebot\Domain\Blog;
+use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Mode;
 
 class BlogAuctionTask
@@ -13,12 +13,17 @@ class BlogAuctionTask
     private const ODD_COEFFICIENT = 3.15;
     private const FROM_DATE = '2000-1-1';
 
-    /** @var MarketStudyVendor */
-    private $marketDataRetriever;
+    private MarketStudyProvider $marketDataRetriever;
 
-    public function __construct()
+    public function __construct(
+        MarketStudyProvider $marketStudyVendor
+    ) {
+        $this->marketDataRetriever = $marketStudyVendor;
+    }
+
+    protected function averagePrice(Blog $blog): float
     {
-        $this->marketDataRetriever = new MarketStudyVendor();
+        return $this->marketDataRetriever->averagePrice($blog);
     }
 
     public function priceAndPublish(string $blogName, string $modeName): void
@@ -29,11 +34,6 @@ class BlogAuctionTask
         $proposal = $this->calculateProposal($blog, $mode);
 
         $this->publishProposal($proposal);
-    }
-
-    protected function averagePrice(Blog $blog): float
-    {
-        return $this->marketDataRetriever->averagePrice($blog->name());
     }
 
     protected function timeDiff(string $fromDate): int
