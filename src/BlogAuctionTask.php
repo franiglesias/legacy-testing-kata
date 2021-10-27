@@ -5,6 +5,7 @@ namespace Quotebot;
 use Quotebot\Domain\Blog;
 use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Mode;
+use Quotebot\Domain\Publisher;
 use Quotebot\Infrastructure\Publisher\VendorPublisher;
 
 class BlogAuctionTask
@@ -15,13 +16,14 @@ class BlogAuctionTask
     private const FROM_DATE = '2000-1-1';
 
     private MarketStudyProvider $marketDataRetriever;
-    private VendorPublisher $publisher;
+    private Publisher $publisher;
 
     public function __construct(
-        MarketStudyProvider $marketStudyVendor
+        MarketStudyProvider $marketStudyVendor,
+        ?Publisher $publisher = null
     ) {
         $this->marketDataRetriever = $marketStudyVendor;
-        $this->publisher = new VendorPublisher();
+        $this->publisher = $publisher ?? new VendorPublisher();
     }
 
     protected function averagePrice(Blog $blog): float

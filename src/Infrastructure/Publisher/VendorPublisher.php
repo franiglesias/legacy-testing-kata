@@ -3,7 +3,9 @@ declare (strict_types=1);
 
 namespace Quotebot\Infrastructure\Publisher;
 
-class VendorPublisher
+use Quotebot\Domain\Publisher;
+
+class VendorPublisher implements Publisher
 {
 
     public function publish($proposal): void
