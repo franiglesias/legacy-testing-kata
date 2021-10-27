@@ -16,7 +16,7 @@ class BlogAuctionTask
     private const FROM_DATE = '2000-1-1';
 
     private MarketStudyProvider $marketDataRetriever;
-    private Publisher $publisher;
+    protected Publisher $publisher;
 
     public function __construct(
         MarketStudyProvider $marketStudyVendor,

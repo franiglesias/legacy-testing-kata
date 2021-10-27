@@ -7,6 +7,7 @@ use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\Blog;
 use Quotebot\Domain\MarketStudyProvider;
+use Quotebot\Domain\Publisher;
 use RuntimeException;
 
 class BlogAuctionTaskTest extends TestCase
@@ -52,15 +53,10 @@ class BlogAuctionTaskTest extends TestCase
             }
         };
 
-        $blogAuctionTask = new class($marketStudyProvider) extends BlogAuctionTask {
+        $publisher = new class() implements Publisher {
             private $proposal;
 
-            protected function timeDiff(string $fromDate): int
-            {
-                return 1;
-            }
-
-            protected function publishProposal($proposal): void
+            public function publish($proposal): void
             {
                 $this->proposal = $proposal;
             }
@@ -68,6 +64,19 @@ class BlogAuctionTaskTest extends TestCase
             public function proposal()
             {
                 return $this->proposal;
+            }
+        };
+
+        $blogAuctionTask = new class($marketStudyProvider, $publisher) extends BlogAuctionTask {
+
+            protected function timeDiff(string $fromDate): int
+            {
+                return 1;
+            }
+
+            public function proposal()
+            {
+                return $this->publisher->proposal();
             }
         };
 
