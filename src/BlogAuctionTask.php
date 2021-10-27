@@ -5,6 +5,7 @@ namespace Quotebot;
 use Quotebot\Domain\Blog;
 use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Mode;
+use Quotebot\Domain\Proposal;
 use Quotebot\Domain\Publisher;
 use Quotebot\Infrastructure\Publisher\VendorPublisher;
 
@@ -46,7 +47,7 @@ class BlogAuctionTask
         return (new \DateTime())->getTimestamp() - (new \DateTime($fromDate))->getTimestamp();
     }
 
-    protected function publishProposal($proposal): void
+    protected function publishProposal(Proposal $proposal): void
     {
         $this->publisher->publish($proposal);
     }
@@ -73,12 +74,14 @@ class BlogAuctionTask
         return $this->averagePrice($blog) + self::PRICE_CORRECTION;
     }
 
-    private function calculateProposal(Blog $blog, Mode $mode)
+    private function calculateProposal(Blog $blog, Mode $mode): Proposal
     {
-        $proposal = $this->correctedAveragePrice($blog);
+        $startingPrice = $this->correctedAveragePrice($blog);
 
-        return $this->isEven($proposal)
-            ? $this->evenProposalStrategy($proposal)
+        $proposalAmount = $this->isEven($startingPrice)
+            ? $this->evenProposalStrategy($startingPrice)
             : $this->oddProposalStrategy($mode);
+
+        return new Proposal($proposalAmount);
     }
 }

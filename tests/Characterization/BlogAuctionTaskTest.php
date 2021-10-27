@@ -7,6 +7,7 @@ use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\Blog;
 use Quotebot\Domain\MarketStudyProvider;
+use Quotebot\Domain\Proposal;
 use Quotebot\Domain\Publisher;
 use RuntimeException;
 
@@ -54,16 +55,16 @@ class BlogAuctionTaskTest extends TestCase
         };
 
         $publisher = new class() implements Publisher {
-            private $proposal;
+            private Proposal $proposal;
 
-            public function publish($proposal): void
+            public function publish(Proposal $proposal): void
             {
                 $this->proposal = $proposal;
             }
 
-            public function proposal()
+            public function proposal(): float
             {
-                return $this->proposal;
+                return $this->proposal->amount();
             }
         };
 

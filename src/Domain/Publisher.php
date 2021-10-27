@@ -5,5 +5,5 @@ namespace Quotebot\Domain;
 
 interface Publisher
 {
-    public function publish($proposal): void;
+    public function publish(Proposal $proposal): void;
 }
