@@ -20,10 +20,10 @@ class BlogAuctionTask
 
     public function __construct(
         MarketStudyProvider $marketStudyVendor,
-        ?Publisher $publisher = null
+        Publisher $publisher
     ) {
         $this->marketDataRetriever = $marketStudyVendor;
-        $this->publisher = $publisher ?? new VendorPublisher();
+        $this->publisher = $publisher;
     }
 
     protected function averagePrice(Blog $blog): float

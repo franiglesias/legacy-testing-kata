@@ -4,14 +4,14 @@ namespace Quotebot;
 
 use MarketStudyVendor;
 use Quotebot\Infrastructure\MarketStudyProvider\MarketStudyVendorAdapter;
+use Quotebot\Infrastructure\Publisher\VendorPublisher;
 
 class AutomaticQuoteBot
 {
     public function sendAllQuotes(string $mode): void
     {
         $blogs = $this->getBlogs();
-        $marketStudyProvider = new MarketStudyVendorAdapter(new MarketStudyVendor());
-        $blogAuctionTask = new BlogAuctionTask($marketStudyProvider);
+        $blogAuctionTask = $this->buildBlogAuctionTask();
 
         foreach ($blogs as $blog) {
             $blogAuctionTask->priceAndPublish($blog, $mode);
@@ -21,5 +21,13 @@ class AutomaticQuoteBot
     protected function getBlogs()
     {
         return AdSpace::getAdSpaces();
+    }
+
+    private function buildBlogAuctionTask(): BlogAuctionTask
+    {
+        $marketStudyProvider = new MarketStudyVendorAdapter(new MarketStudyVendor());
+        $publisher = new VendorPublisher();
+
+        return new BlogAuctionTask($marketStudyProvider, $publisher);
     }
 }
