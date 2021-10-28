@@ -80,15 +80,13 @@ class BlogAuctionTaskTest extends TestCase
 
         $proposalBuilder = new ProposalBuilder($marketStudyProvider, $clock);
 
-        $blogAuctionTask = new class($marketStudyProvider, $publisher, $clock, $proposalBuilder) extends BlogAuctionTask {
+        return new class($publisher, $proposalBuilder) extends BlogAuctionTask {
 
             public function proposal()
             {
                 return $this->publisher->proposal();
             }
         };
-
-        return $blogAuctionTask;
     }
 
 }
