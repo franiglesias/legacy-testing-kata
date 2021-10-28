@@ -9,6 +9,7 @@ use Quotebot\Domain\Blog;
 use Quotebot\Domain\Clock;
 use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Proposal;
+use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Domain\Publisher;
 use RuntimeException;
 
@@ -77,7 +78,9 @@ class BlogAuctionTaskTest extends TestCase
             }
         };
 
-        $blogAuctionTask = new class($marketStudyProvider, $publisher, $clock) extends BlogAuctionTask {
+        $proposalBuilder = new ProposalBuilder($marketStudyProvider, $clock);
+
+        $blogAuctionTask = new class($marketStudyProvider, $publisher, $clock, $proposalBuilder) extends BlogAuctionTask {
 
             public function proposal()
             {

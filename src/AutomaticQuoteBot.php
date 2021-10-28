@@ -3,6 +3,8 @@
 namespace Quotebot;
 
 use MarketStudyVendor;
+use Quotebot\Domain\ProposalBuilder;
+use Quotebot\Infrastructure\Clock\SystemClock;
 use Quotebot\Infrastructure\MarketStudyProvider\MarketStudyVendorAdapter;
 use Quotebot\Infrastructure\Publisher\VendorPublisher;
 
@@ -27,7 +29,9 @@ class AutomaticQuoteBot
     {
         $marketStudyProvider = new MarketStudyVendorAdapter(new MarketStudyVendor());
         $publisher = new VendorPublisher();
+        $clock = new SystemClock();
+        $proposalBuilder = new ProposalBuilder($marketStudyProvider, $clock);
 
-        return new BlogAuctionTask($marketStudyProvider, $publisher);
+        return new BlogAuctionTask($marketStudyProvider, $publisher, $clock, $proposalBuilder);
     }
 }
