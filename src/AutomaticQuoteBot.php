@@ -27,11 +27,18 @@ class AutomaticQuoteBot
 
     private function buildBlogAuctionTask(): BlogAuctionTask
     {
-        $marketStudyProvider = new MarketStudyVendorAdapter(new MarketStudyVendor());
         $publisher = new VendorPublisher();
-        $clock = new SystemClock();
-        $proposalBuilder = new ProposalBuilder($marketStudyProvider, $clock);
 
-        return new BlogAuctionTask($marketStudyProvider, $publisher, $clock, $proposalBuilder);
+        $proposalBuilder = $this->buildProposalBuilder();
+
+        return new BlogAuctionTask($publisher, $proposalBuilder);
+    }
+
+    private function buildProposalBuilder(): ProposalBuilder
+    {
+        $marketStudyProvider = new MarketStudyVendorAdapter(new MarketStudyVendor());
+        $clock = new SystemClock();
+
+        return new ProposalBuilder($marketStudyProvider, $clock);
     }
 }

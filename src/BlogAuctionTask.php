@@ -19,15 +19,11 @@ class BlogAuctionTask
     private ProposalBuilder $proposalBuilder;
 
     public function __construct(
-        MarketStudyProvider $marketStudyVendor,
         Publisher $publisher,
-        ?Clock $clock = null,
-        ?ProposalBuilder $proposalBuilder = null
+        ProposalBuilder $proposalBuilder
     ) {
         $this->publisher = $publisher;
-        $this->proposalBuilder = $proposalBuilder ?? new ProposalBuilder(
-                $marketStudyVendor, $clock ?? new SystemClock()
-            );
+        $this->proposalBuilder = $proposalBuilder;
     }
 
     public function priceAndPublish(string $blogName, string $modeName): void
