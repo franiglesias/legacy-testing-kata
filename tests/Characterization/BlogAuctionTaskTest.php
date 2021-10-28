@@ -6,6 +6,7 @@ namespace Quotebot\Tests\Characterization;
 use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\Blog;
+use Quotebot\Domain\Clock;
 use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Proposal;
 use Quotebot\Domain\Publisher;
@@ -68,12 +69,15 @@ class BlogAuctionTaskTest extends TestCase
             }
         };
 
-        $blogAuctionTask = new class($marketStudyProvider, $publisher) extends BlogAuctionTask {
+        $clock = new class() implements Clock {
 
-            protected function timeDiff(string $fromDate): int
+            public function secondsSince(string $fromDate): int
             {
                 return 1;
             }
+        };
+
+        $blogAuctionTask = new class($marketStudyProvider, $publisher, $clock) extends BlogAuctionTask {
 
             public function proposal()
             {

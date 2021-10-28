@@ -3,10 +3,12 @@
 namespace Quotebot;
 
 use Quotebot\Domain\Blog;
+use Quotebot\Domain\Clock;
 use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Mode;
 use Quotebot\Domain\Proposal;
 use Quotebot\Domain\Publisher;
+use Quotebot\Infrastructure\Clock\SystemClock;
 use Quotebot\Infrastructure\Publisher\VendorPublisher;
 
 class BlogAuctionTask
@@ -18,13 +20,16 @@ class BlogAuctionTask
 
     private MarketStudyProvider $marketDataRetriever;
     protected Publisher $publisher;
+    private Clock $clock;
 
     public function __construct(
         MarketStudyProvider $marketStudyVendor,
-        Publisher $publisher
+        Publisher $publisher,
+        ?Clock $clock = null
     ) {
         $this->marketDataRetriever = $marketStudyVendor;
         $this->publisher = $publisher;
+        $this->clock = $clock ?? new SystemClock();
     }
 
     protected function averagePrice(Blog $blog): float
@@ -44,7 +49,7 @@ class BlogAuctionTask
 
     protected function timeDiff(string $fromDate): int
     {
-        return (new \DateTime())->getTimestamp() - (new \DateTime($fromDate))->getTimestamp();
+        return $this->clock->secondsSince($fromDate);
     }
 
     protected function publishProposal(Proposal $proposal): void
