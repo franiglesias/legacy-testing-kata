@@ -7,34 +7,24 @@ use Quotebot\Domain\Clock;
 use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Mode;
 use Quotebot\Domain\Proposal;
+use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Domain\Publisher;
 use Quotebot\Infrastructure\Clock\SystemClock;
 use Quotebot\Infrastructure\Publisher\VendorPublisher;
 
 class BlogAuctionTask
 {
-    private const PRICE_CORRECTION = 2;
-    private const EVEN_COEFFICIENT = 3.14;
-    private const ODD_COEFFICIENT = 3.15;
-    private const FROM_DATE = '2000-1-1';
 
-    private MarketStudyProvider $marketDataRetriever;
     protected Publisher $publisher;
-    private Clock $clock;
+    private ProposalBuilder $proposalBuilder;
 
     public function __construct(
         MarketStudyProvider $marketStudyVendor,
         Publisher $publisher,
         ?Clock $clock = null
     ) {
-        $this->marketDataRetriever = $marketStudyVendor;
         $this->publisher = $publisher;
-        $this->clock = $clock ?? new SystemClock();
-    }
-
-    protected function averagePrice(Blog $blog): float
-    {
-        return $this->marketDataRetriever->averagePrice($blog);
+        $this->proposalBuilder = new ProposalBuilder($marketStudyVendor, $clock ?? new SystemClock());
     }
 
     public function priceAndPublish(string $blogName, string $modeName): void
@@ -47,46 +37,13 @@ class BlogAuctionTask
         $this->publishProposal($proposal);
     }
 
-    protected function timeDiff(string $fromDate): int
-    {
-        return $this->clock->secondsSince($fromDate);
-    }
-
-    protected function publishProposal(Proposal $proposal): void
+    private function publishProposal(Proposal $proposal): void
     {
         $this->publisher->publish($proposal);
     }
 
-    private function evenProposalStrategy($proposal): float
-    {
-        return self::EVEN_COEFFICIENT * $proposal;
-    }
-
-    private function oddProposalStrategy(Mode $mode)
-    {
-        return self::ODD_COEFFICIENT
-            * $mode->timeFactor()
-            * $this->timeDiff(self::FROM_DATE);
-    }
-
-    private function isEven($proposal): bool
-    {
-        return $proposal % 2 === 0;
-    }
-
-    private function correctedAveragePrice(Blog $blog)
-    {
-        return $this->averagePrice($blog) + self::PRICE_CORRECTION;
-    }
-
     private function calculateProposal(Blog $blog, Mode $mode): Proposal
     {
-        $startingPrice = $this->correctedAveragePrice($blog);
-
-        $proposalAmount = $this->isEven($startingPrice)
-            ? $this->evenProposalStrategy($startingPrice)
-            : $this->oddProposalStrategy($mode);
-
-        return new Proposal($proposalAmount);
+        return $this->proposalBuilder->calculateProposal($blog, $mode);
     }
 }
