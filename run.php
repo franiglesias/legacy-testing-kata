@@ -2,6 +2,6 @@
 
 require 'vendor/autoload.php';
 
-use Quotebot\Application;
+use Quotebot\Infrastructure\EntryPoint\Application;
 
 Application::main();
