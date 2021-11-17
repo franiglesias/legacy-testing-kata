@@ -10,13 +10,20 @@ use Quotebot\Infrastructure\Publisher\VendorPublisher;
 
 class AutomaticQuoteBot
 {
+
+    private ?BlogAuctionTask $blogAuctionTask;
+
+    public function __construct(?BlogAuctionTask $blogAuctionTask = null)
+    {
+        $this->blogAuctionTask = $blogAuctionTask ?? $this->buildBlogAuctionTask();
+    }
+
     public function sendAllQuotes(string $mode): void
     {
         $blogs = $this->getBlogs();
-        $blogAuctionTask = $this->buildBlogAuctionTask();
 
         foreach ($blogs as $blog) {
-            $blogAuctionTask->priceAndPublish($blog, $mode);
+            $this->blogAuctionTask->priceAndPublish($blog, $mode);
         }
     }
 
