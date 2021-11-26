@@ -3,6 +3,7 @@
 namespace Quotebot\Infrastructure\EntryPoint;
 
 use Quotebot\AutomaticQuoteBot;
+use Quotebot\Infrastructure\AdSpaces\VendorAdSpacesRepository;
 use Quotebot\Infrastructure\Builder\BlogAuctionTaskBuilder;
 use Symfony\Component\Dotenv\Dotenv;
 
@@ -24,7 +25,9 @@ class Application
             $blogAuctionTaskBuilder = new BlogAuctionTaskBuilder();
             $blogAuctionTask = $blogAuctionTaskBuilder->buildBlogAuctionTask();
 
-            $bot = new AutomaticQuoteBot($blogAuctionTask);
+            $adSpaceRepository = new VendorAdSpacesRepository();
+
+            $bot = new AutomaticQuoteBot($blogAuctionTask, $adSpaceRepository);
             $bot->sendAllQuotes('FAST');
         }
     }
