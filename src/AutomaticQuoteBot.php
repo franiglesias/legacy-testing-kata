@@ -5,6 +5,7 @@ namespace Quotebot;
 use MarketStudyVendor;
 use Quotebot\Domain\AdSpaceRepository;
 use Quotebot\Domain\ProposalBuilder;
+use Quotebot\Infrastructure\Builder\BlogAuctionTaskBuilder;
 use Quotebot\Infrastructure\Clock\SystemClock;
 use Quotebot\Infrastructure\MarketStudyProvider\MarketStudyVendorAdapter;
 use Quotebot\Infrastructure\Publisher\VendorPublisher;
@@ -16,10 +17,10 @@ class AutomaticQuoteBot
     private ?AdSpaceRepository $adSpaceRepository;
 
     public function __construct(
-        ?BlogAuctionTask $blogAuctionTask = null,
+        BlogAuctionTask $blogAuctionTask,
         ?AdSpaceRepository $adSpaceRepository = null
     ) {
-        $this->blogAuctionTask = $blogAuctionTask ?? $this->buildBlogAuctionTask();
+        $this->blogAuctionTask = $blogAuctionTask;
         $this->adSpaceRepository = $adSpaceRepository;
     }
 
@@ -39,22 +40,5 @@ class AutomaticQuoteBot
         }
 
         return AdSpace::getAdSpaces();
-    }
-
-    private function buildBlogAuctionTask(): BlogAuctionTask
-    {
-        $publisher = new VendorPublisher();
-
-        $proposalBuilder = $this->buildProposalBuilder();
-
-        return new BlogAuctionTask($publisher, $proposalBuilder);
-    }
-
-    private function buildProposalBuilder(): ProposalBuilder
-    {
-        $marketStudyProvider = new MarketStudyVendorAdapter(new MarketStudyVendor());
-        $clock = new SystemClock();
-
-        return new ProposalBuilder($marketStudyProvider, $clock);
     }
 }

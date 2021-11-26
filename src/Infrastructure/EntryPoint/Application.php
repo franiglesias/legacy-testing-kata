@@ -3,6 +3,7 @@
 namespace Quotebot\Infrastructure\EntryPoint;
 
 use Quotebot\AutomaticQuoteBot;
+use Quotebot\Infrastructure\Builder\BlogAuctionTaskBuilder;
 use Symfony\Component\Dotenv\Dotenv;
 
 class Application
@@ -20,7 +21,10 @@ class Application
         $environment = $args['APP_ENV'] ?? $_ENV['APP_ENV'] ?? 'prod';
 
         if ($environment === 'prod') {
-            $bot = new AutomaticQuoteBot();
+            $blogAuctionTaskBuilder = new BlogAuctionTaskBuilder();
+            $blogAuctionTask = $blogAuctionTaskBuilder->buildBlogAuctionTask();
+
+            $bot = new AutomaticQuoteBot($blogAuctionTask);
             $bot->sendAllQuotes('FAST');
         }
     }
