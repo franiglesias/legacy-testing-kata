@@ -5,11 +5,14 @@ namespace Quotebot\Infrastructure\AdSpaces;
 
 use Quotebot\AdSpace;
 use Quotebot\Domain\AdSpaceRepository;
+use Quotebot\Domain\Blog;
 
 class VendorAdSpacesRepository implements AdSpaceRepository
 {
     public function findAll(): array
     {
-        return AdSpace::getAdSpaces();
+        $adSpaces = AdSpace::getAdSpaces();
+
+        return array_map(static fn(string $blogName) => new Blog($blogName), $adSpaces);
     }
 }

@@ -26,6 +26,13 @@ class BlogAuctionTask
         $this->proposalBuilder = $proposalBuilder;
     }
 
+    public function priceAndPublish(Blog $blog, Mode $mode): void
+    {
+        $proposal = $this->calculateProposal($blog, $mode);
+
+        $this->publishProposal($proposal);
+    }
+
     private function publishProposal(Proposal $proposal): void
     {
         $this->publisher->publish($proposal);
@@ -34,12 +41,5 @@ class BlogAuctionTask
     private function calculateProposal(Blog $blog, Mode $mode): Proposal
     {
         return $this->proposalBuilder->calculateProposal($blog, $mode);
-    }
-
-    public function priceAndPublish(Blog $blog, Mode $mode): void
-    {
-        $proposal = $this->calculateProposal($blog, $mode);
-
-        $this->publishProposal($proposal);
     }
 }

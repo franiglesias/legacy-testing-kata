@@ -13,7 +13,7 @@ use Quotebot\Domain\Mode;
 class AutomaticQuoteBotTest extends TestCase
 {
     private AutomaticQuoteBot $bot;
-    private $blogAuctionTaskSpy;
+    private BlogAuctionTask $blogAuctionTaskSpy;
     private $adSpaceRepository;
 
     protected function setUp(): void
@@ -34,7 +34,7 @@ class AutomaticQuoteBotTest extends TestCase
         $this->adSpaceRepository
             ->expects($spy = self::any())
             ->method('findAll')
-            ->willReturn(['Blog1', 'Blog2']);
+            ->willReturn([new Blog('Blog1'), new Blog('Blog2')]);
 
         $this->bot->sendAllQuotes('FAST');
 
@@ -42,7 +42,7 @@ class AutomaticQuoteBotTest extends TestCase
         self::assertTrue($spy->hasBeenInvoked());
     }
 
-    protected function buildBlogAuctionTaskSpy()
+    protected function buildBlogAuctionTaskSpy(): BlogAuctionTask
     {
         return new class() extends BlogAuctionTask {
             private int $calls = 0;
