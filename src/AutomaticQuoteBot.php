@@ -3,6 +3,8 @@
 namespace Quotebot;
 
 use Quotebot\Domain\AdSpaceRepository;
+use Quotebot\Domain\Blog;
+use Quotebot\Domain\Mode;
 
 class AutomaticQuoteBot
 {
@@ -23,7 +25,7 @@ class AutomaticQuoteBot
         $blogs = $this->getBlogs();
 
         foreach ($blogs as $blog) {
-            $this->blogAuctionTask->priceAndPublish($blog, $mode);
+            $this->blogAuctionTask->priceAndPublish(new Blog($blog), new Mode($mode));
         }
     }
 

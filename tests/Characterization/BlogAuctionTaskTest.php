@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\Blog;
 use Quotebot\Domain\Clock;
 use Quotebot\Domain\MarketStudyProvider;
+use Quotebot\Domain\Mode;
 use Quotebot\Domain\Proposal;
 use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Domain\Publisher;
@@ -22,9 +23,7 @@ class BlogAuctionTaskTest extends TestCase
     {
         $blogAuctionTask = $this->getBlogAuctionTask($averagePrice);
 
-        $blog = 'Blog Example';
-
-        $blogAuctionTask->priceAndPublish($blog, $mode);
+        $blogAuctionTask->priceAndPublish(new Blog('Blog Example'), new Mode($mode));
 
         self::assertEquals($proposal, $blogAuctionTask->proposal());
     }

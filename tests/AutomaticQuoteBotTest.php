@@ -7,6 +7,8 @@ use PHPUnit\Framework\TestCase;
 use Quotebot\AutomaticQuoteBot;
 use Quotebot\BlogAuctionTask;
 use Quotebot\Domain\AdSpaceRepository;
+use Quotebot\Domain\Blog;
+use Quotebot\Domain\Mode;
 
 class AutomaticQuoteBotTest extends TestCase
 {
@@ -49,7 +51,7 @@ class AutomaticQuoteBotTest extends TestCase
             {
             }
 
-            public function priceAndPublish(string $blogName, string $modeName): void
+            public function priceAndPublish(Blog $blog, Mode $mode): void
             {
                 $this->calls++;
             }
