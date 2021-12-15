@@ -1,16 +1,6 @@
 <?php
 
-namespace Quotebot;
-
-use Quotebot\Domain\Blog;
-use Quotebot\Domain\Clock;
-use Quotebot\Domain\MarketStudyProvider;
-use Quotebot\Domain\Mode;
-use Quotebot\Domain\Proposal;
-use Quotebot\Domain\ProposalBuilder;
-use Quotebot\Domain\Publisher;
-use Quotebot\Infrastructure\Clock\SystemClock;
-use Quotebot\Infrastructure\Publisher\VendorPublisher;
+namespace Quotebot\Domain;
 
 class BlogAuctionTask
 {

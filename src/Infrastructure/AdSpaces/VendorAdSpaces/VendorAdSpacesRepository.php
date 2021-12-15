@@ -1,9 +1,8 @@
 <?php
 declare (strict_types=1);
 
-namespace Quotebot\Infrastructure\AdSpaces;
+namespace Quotebot\Infrastructure\AdSpaces\VendorAdSpaces;
 
-use Quotebot\AdSpace;
 use Quotebot\Domain\AdSpaceRepository;
 use Quotebot\Domain\Blog;
 

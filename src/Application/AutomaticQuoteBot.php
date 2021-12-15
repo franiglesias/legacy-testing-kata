@@ -1,9 +1,9 @@
 <?php
 
-namespace Quotebot;
+namespace Quotebot\Application;
 
 use Quotebot\Domain\AdSpaceRepository;
-use Quotebot\Domain\Blog;
+use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\Mode;
 
 class AutomaticQuoteBot

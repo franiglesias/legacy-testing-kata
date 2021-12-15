@@ -2,8 +2,8 @@
 
 namespace Quotebot\Infrastructure\EntryPoint;
 
-use Quotebot\AutomaticQuoteBot;
-use Quotebot\Infrastructure\AdSpaces\VendorAdSpacesRepository;
+use Quotebot\Application\AutomaticQuoteBot;
+use Quotebot\Infrastructure\AdSpaces\VendorAdSpaces\VendorAdSpacesRepository;
 use Quotebot\Infrastructure\Builder\BlogAuctionTaskBuilder;
 use Symfony\Component\Dotenv\Dotenv;
 

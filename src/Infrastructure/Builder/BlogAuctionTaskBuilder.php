@@ -4,7 +4,7 @@ declare (strict_types=1);
 namespace Quotebot\Infrastructure\Builder;
 
 use MarketStudyVendor;
-use Quotebot\BlogAuctionTask;
+use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Infrastructure\Clock\SystemClock;
 use Quotebot\Infrastructure\MarketStudyProvider\MarketStudyVendorAdapter;

@@ -1,18 +1,17 @@
 <?php
 declare (strict_types=1);
 
-namespace Quotebot\Tests\Characterization;
+namespace Quotebot\Tests\Domain;
 
-use Quotebot\BlogAuctionTask;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\Blog;
+use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\Clock;
 use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Mode;
 use Quotebot\Domain\Proposal;
 use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Domain\Publisher;
-use RuntimeException;
 
 class BlogAuctionTaskTest extends TestCase
 {

@@ -1,13 +1,13 @@
 <?php
 declare (strict_types=1);
 
-namespace Quotebot\Tests;
+namespace Quotebot\Tests\Application;
 
 use PHPUnit\Framework\TestCase;
-use Quotebot\AutomaticQuoteBot;
-use Quotebot\BlogAuctionTask;
+use Quotebot\Application\AutomaticQuoteBot;
 use Quotebot\Domain\AdSpaceRepository;
 use Quotebot\Domain\Blog;
+use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\Mode;
 
 class AutomaticQuoteBotTest extends TestCase
