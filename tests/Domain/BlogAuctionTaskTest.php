@@ -15,6 +15,8 @@ use Quotebot\Domain\Publisher;
 
 class BlogAuctionTaskTest extends TestCase
 {
+    private $publisher;
+
     /** @test
      * @dataProvider examplesProvider
      */
@@ -24,7 +26,7 @@ class BlogAuctionTaskTest extends TestCase
 
         $blogAuctionTask->priceAndPublish(new Blog('Blog Example'), new Mode($mode));
 
-        self::assertEquals($proposal, $blogAuctionTask->proposal());
+        self::assertEquals($proposal, $this->publisher->proposal());
     }
 
     public function examplesProvider(): array
@@ -54,20 +56,6 @@ class BlogAuctionTaskTest extends TestCase
             }
         };
 
-        $publisher = new class() implements Publisher {
-            private Proposal $proposal;
-
-            public function publish(Proposal $proposal): void
-            {
-                $this->proposal = $proposal;
-            }
-
-            public function proposal(): float
-            {
-                return $this->proposal->amount();
-            }
-        };
-
         $clock = new class() implements Clock {
 
             public function secondsSince(string $fromDate): int
@@ -78,11 +66,27 @@ class BlogAuctionTaskTest extends TestCase
 
         $proposalBuilder = new ProposalBuilder($marketStudyProvider, $clock);
 
-        return new class($publisher, $proposalBuilder) extends BlogAuctionTask {
+        return new BlogAuctionTask($this->publisher, $proposalBuilder);
+    }
 
-            public function proposal()
+    protected function setUp(): void
+    {
+        $this->buildSpyablePublisher();
+    }
+
+    protected function buildSpyablePublisher(): void
+    {
+        $this->publisher = new class() implements Publisher {
+            private Proposal $proposal;
+
+            public function publish(Proposal $proposal): void
             {
-                return $this->publisher->proposal();
+                $this->proposal = $proposal;
+            }
+
+            public function proposal(): float
+            {
+                return $this->proposal->amount();
             }
         };
     }
