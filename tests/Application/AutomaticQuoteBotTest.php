@@ -3,27 +3,36 @@ declare (strict_types=1);
 
 namespace Quotebot\Tests\Application;
 
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Rule\AnyInvokedCount;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Application\AutomaticQuoteBot;
 use Quotebot\Domain\AdSpaceRepository;
 use Quotebot\Domain\Blog;
 use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\Mode;
+use Quotebot\Domain\Proposal;
+use Quotebot\Domain\ProposalBuilder;
+use Quotebot\Domain\Publisher;
 
 class AutomaticQuoteBotTest extends TestCase
 {
     private AutomaticQuoteBot $bot;
-    private BlogAuctionTask $blogAuctionTaskSpy;
-    private $adSpaceRepository;
+    private BlogAuctionTask $blogAuctionTask;
+    private AdSpaceRepository $adSpaceRepository;
+    /** @var Publisher|MockObject */
+    private Publisher $publisher;
+    /** @var ProposalBuilder|MockObject */
+    private ProposalBuilder $proposalBuilder;
 
     protected function setUp(): void
     {
-        $this->blogAuctionTaskSpy = $this->buildBlogAuctionTaskSpy();
+        $this->blogAuctionTask = $this->buildBlogAuctionTask();
 
         $this->adSpaceRepository = $this->createMock(AdSpaceRepository::class);
 
         $this->bot = new AutomaticQuoteBot(
-            $this->blogAuctionTaskSpy,
+            $this->blogAuctionTask,
             $this->adSpaceRepository
         );
     }
@@ -31,36 +40,51 @@ class AutomaticQuoteBotTest extends TestCase
     /** @test */
     public function shouldUseInjectedDependency(): void
     {
-        $this->adSpaceRepository
-            ->expects($spy = self::any())
-            ->method('findAll')
-            ->willReturn([new Blog('Blog1'), new Blog('Blog2')]);
+        $blogs = [new Blog('Blog1'), new Blog('Blog2')];
 
-        $this->bot->sendAllQuotes('FAST');
+        $publisherSpy = $this->givenWeHaveThis($blogs);
 
-        self::assertTrue($this->blogAuctionTaskSpy->hasBeenCalled());
-        self::assertTrue($spy->hasBeenInvoked());
+        $this->whenWeSendAllQuotes();
+
+        $this->thenWePublishProposalsForEachBlog($blogs, $publisherSpy);
     }
 
-    protected function buildBlogAuctionTaskSpy(): BlogAuctionTask
+    private function buildBlogAuctionTask(): BlogAuctionTask
     {
-        return new class() extends BlogAuctionTask {
-            private int $calls = 0;
+        $this->publisher = $this->createMock(Publisher::class);
+        $this->proposalBuilder = $this->createMock(ProposalBuilder::class);
 
-            public function __construct()
-            {
-            }
+        return new BlogAuctionTask(
+            $this->publisher,
+            $this->proposalBuilder
+        );
+    }
 
-            public function priceAndPublish(Blog $blog, Mode $mode): void
-            {
-                $this->calls++;
-            }
+    private function givenWeHaveThis(array $blogs): AnyInvokedCount
+    {
+        $this->adSpaceRepository
+            ->method('findAll')
+            ->willReturn($blogs);
 
-            public function hasBeenCalled(): bool
-            {
-                return $this->calls > 0;
-            }
-        };
+        $this->proposalBuilder
+            ->method('calculateProposal')
+            ->willReturn(new Proposal(123));
+
+        $this->publisher
+            ->expects($publisherSpy = self::any())
+            ->method('publish');
+
+        return $publisherSpy;
+    }
+
+    private function thenWePublishProposalsForEachBlog(array $blogs, AnyInvokedCount $publisherSpy): void
+    {
+        self::assertEquals(count($blogs), $publisherSpy->getInvocationCount());
+    }
+
+    private function whenWeSendAllQuotes(): void
+    {
+        $this->bot->sendAllQuotes('FAST');
     }
 
 }

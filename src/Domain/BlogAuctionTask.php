@@ -2,7 +2,7 @@
 
 namespace Quotebot\Domain;
 
-class BlogAuctionTask
+final class BlogAuctionTask
 {
 
     protected Publisher $publisher;
