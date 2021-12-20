@@ -38,14 +38,12 @@ class AutomaticQuoteBotTest extends TestCase
     }
 
     /** @test */
-    public function shouldUseInjectedDependency(): void
+    public function shouldPublishAProposalForEachBlog(): void
     {
         $blogs = [new Blog('Blog1'), new Blog('Blog2')];
 
-        $publisherSpy = $this->givenWeHaveThis($blogs);
-
+        $publisherSpy = $this->givenWeHaveThisCollectionOf($blogs);
         $this->whenWeSendAllQuotes();
-
         $this->thenWePublishProposalsForEachBlog($blogs, $publisherSpy);
     }
 
@@ -60,7 +58,7 @@ class AutomaticQuoteBotTest extends TestCase
         );
     }
 
-    private function givenWeHaveThis(array $blogs): AnyInvokedCount
+    private function givenWeHaveThisCollectionOf(array $blogs): AnyInvokedCount
     {
         $this->adSpaceRepository
             ->method('findAll')
