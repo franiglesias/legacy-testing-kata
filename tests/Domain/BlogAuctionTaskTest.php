@@ -3,12 +3,14 @@ declare (strict_types=1);
 
 namespace Quotebot\Tests\Domain;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\Blog;
 use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\Clock;
 use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Mode;
+use Quotebot\Domain\Printer;
 use Quotebot\Domain\Proposal;
 use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Domain\Publisher;
@@ -16,26 +18,42 @@ use Quotebot\Domain\Publisher;
 class BlogAuctionTaskTest extends TestCase
 {
     private Publisher $publisher;
+    /** @var Printer|MockObject */
+    private Printer $printer;
+
+    protected function setUp(): void
+    {
+        $this->buildSpyablePublisher();
+        $this->printer = $this->createMock(Printer::class);
+    }
 
     /** @test
      * @dataProvider examplesProvider
      */
-    public function shouldGenerateAProposal(string $mode, float $averagePrice, float $proposal): void
+    public function shouldGenerateAProposal(Mode $mode, float $averagePrice, Proposal $proposal): void
     {
+        $blog = new Blog('Blog Example');
+
+        $this->printer
+            ->expects($printerSpy = self::any())
+            ->method('print')
+            ->with($proposal);
+
         $blogAuctionTask = $this->getBlogAuctionTask($averagePrice);
 
-        $blogAuctionTask->priceAndPublish(new Blog('Blog Example'), new Mode($mode));
+        $blogAuctionTask->priceAndPublish($blog, $mode);
 
         self::assertEquals($proposal, $this->publisher->proposal());
+        self::assertTrue($printerSpy->hasBeenInvoked());
     }
 
     public function examplesProvider(): array
     {
         return [
-            'odd slow' => ['SLOW', 0.0, 6.28],
-            'even slow' => ['SLOW', 1.0, 6.3],
-            'odd medium' => ['MEDIUM', 0.0, 6.28],
-            'even medium' => ['MEDIUM', 1.0, 12.6],
+            'odd slow' => [new Mode('SLOW'), 0.0, new Proposal(6.28)],
+            'even slow' => [new Mode('SLOW'), 1.0, new Proposal(6.3)],
+            'odd medium' => [new Mode('MEDIUM'), 0.0, new Proposal(6.28)],
+            'even medium' => [new Mode('MEDIUM'), 1.0, new Proposal(12.6)],
         ];
     }
 
@@ -66,12 +84,7 @@ class BlogAuctionTaskTest extends TestCase
 
         $proposalBuilder = new ProposalBuilder($marketStudyProvider, $clock);
 
-        return new BlogAuctionTask($this->publisher, $proposalBuilder);
-    }
-
-    protected function setUp(): void
-    {
-        $this->buildSpyablePublisher();
+        return new BlogAuctionTask($this->publisher, $proposalBuilder, $this->printer);
     }
 
     protected function buildSpyablePublisher(): void
@@ -84,9 +97,9 @@ class BlogAuctionTaskTest extends TestCase
                 $this->proposal = $proposal;
             }
 
-            public function proposal(): float
+            public function proposal(): Proposal
             {
-                return $this->proposal->amount();
+                return $this->proposal;
             }
         };
     }
