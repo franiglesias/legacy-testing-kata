@@ -3,6 +3,7 @@
 namespace Quotebot\Application;
 
 use Quotebot\Domain\AdSpaceRepository;
+use Quotebot\Domain\Blog;
 use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\Mode;
 
@@ -36,7 +37,7 @@ class AutomaticQuoteBot
         return $this->adSpaceRepository->findAll();
     }
 
-    private function priceAndPublish($blog, Mode $mode): void
+    private function priceAndPublish(Blog $blog, Mode $mode): void
     {
         $this->blogAuctionTask->priceAndPublish($blog, $mode);
     }
