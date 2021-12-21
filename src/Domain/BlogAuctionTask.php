@@ -25,17 +25,23 @@ final class BlogAuctionTask
     {
         $proposal = $this->calculateProposal($blog, $mode);
 
-        $this->publishProposal($proposal);
-    }
+        $this->printProposal($proposal);
 
-    private function publishProposal(Proposal $proposal): void
-    {
-        $this->printer->print($proposal);
-        $this->publisher->publish($proposal);
+        $this->publishProposal($proposal);
     }
 
     private function calculateProposal(Blog $blog, Mode $mode): Proposal
     {
         return $this->proposalBuilder->calculateProposal($blog, $mode);
+    }
+
+    private function printProposal(Proposal $proposal): void
+    {
+        $this->printer->print($proposal);
+    }
+
+    private function publishProposal(Proposal $proposal): void
+    {
+        $this->publisher->publish($proposal);
     }
 }
