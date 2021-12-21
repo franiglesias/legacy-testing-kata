@@ -5,10 +5,10 @@ namespace Quotebot\Infrastructure\Builder;
 
 use MarketStudyVendor;
 use Quotebot\Domain\BlogAuctionTask;
-use Quotebot\Domain\Printer;
 use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Infrastructure\Clock\SystemClock;
 use Quotebot\Infrastructure\MarketStudyProvider\MarketStudyVendorAdapter;
+use Quotebot\Infrastructure\Printer\ConsolePrinter;
 use Quotebot\Infrastructure\Publisher\VendorPublisher;
 
 class BlogAuctionTaskBuilder
@@ -28,7 +28,7 @@ class BlogAuctionTaskBuilder
 
         $proposalBuilder = $this->buildProposalBuilder();
 
-        $printer = new Printer();
+        $printer = new ConsolePrinter();
 
         return new BlogAuctionTask($publisher, $proposalBuilder, $printer);
     }

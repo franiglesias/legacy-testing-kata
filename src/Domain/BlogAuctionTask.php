@@ -2,17 +2,19 @@
 
 namespace Quotebot\Domain;
 
+use Quotebot\Infrastructure\Printer\ConsolePrinter;
+
 final class BlogAuctionTask
 {
 
     protected Publisher $publisher;
     private ProposalBuilder $proposalBuilder;
-    private Printer $printer;
+    private ConsolePrinter $printer;
 
     public function __construct(
         Publisher $publisher,
         ProposalBuilder $proposalBuilder,
-        Printer $printer
+        ConsolePrinter $printer
     ) {
         $this->publisher = $publisher;
         $this->proposalBuilder = $proposalBuilder;

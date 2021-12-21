@@ -10,11 +10,10 @@ use Quotebot\Application\AutomaticQuoteBot;
 use Quotebot\Domain\AdSpaceRepository;
 use Quotebot\Domain\Blog;
 use Quotebot\Domain\BlogAuctionTask;
-use Quotebot\Domain\Mode;
-use Quotebot\Domain\Printer;
 use Quotebot\Domain\Proposal;
 use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Domain\Publisher;
+use Quotebot\Infrastructure\Printer\ConsolePrinter;
 
 class AutomaticQuoteBotTest extends TestCase
 {
@@ -25,7 +24,7 @@ class AutomaticQuoteBotTest extends TestCase
     private Publisher $publisher;
     /** @var ProposalBuilder|MockObject */
     private ProposalBuilder $proposalBuilder;
-    /** @var MockObject|Printer */
+    /** @var MockObject|ConsolePrinter */
     private $printer;
 
     protected function setUp(): void
@@ -56,7 +55,7 @@ class AutomaticQuoteBotTest extends TestCase
     {
         $this->publisher = $this->createMock(Publisher::class);
         $this->proposalBuilder = $this->createMock(ProposalBuilder::class);
-        $this->printer = $this->createMock(Printer::class);
+        $this->printer = $this->createMock(ConsolePrinter::class);
 
         return new BlogAuctionTask(
             $this->publisher,

@@ -10,21 +10,21 @@ use Quotebot\Domain\BlogAuctionTask;
 use Quotebot\Domain\Clock;
 use Quotebot\Domain\MarketStudyProvider;
 use Quotebot\Domain\Mode;
-use Quotebot\Domain\Printer;
 use Quotebot\Domain\Proposal;
 use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Domain\Publisher;
+use Quotebot\Infrastructure\Printer\ConsolePrinter;
 
 class BlogAuctionTaskTest extends TestCase
 {
     private Publisher $publisher;
-    /** @var Printer|MockObject */
-    private Printer $printer;
+    /** @var ConsolePrinter|MockObject */
+    private ConsolePrinter $printer;
 
     protected function setUp(): void
     {
         $this->buildSpyablePublisher();
-        $this->printer = $this->createMock(Printer::class);
+        $this->printer = $this->createMock(ConsolePrinter::class);
     }
 
     /** @test
