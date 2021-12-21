@@ -15,7 +15,7 @@ use Quotebot\Domain\Publisher;
 
 class BlogAuctionTaskTest extends TestCase
 {
-    private $publisher;
+    private Publisher $publisher;
 
     /** @test
      * @dataProvider examplesProvider
