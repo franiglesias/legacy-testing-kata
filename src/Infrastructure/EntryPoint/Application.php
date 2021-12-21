@@ -23,7 +23,8 @@ class Application
 
         if ($environment === 'prod') {
             $blogAuctionTaskBuilder = new BlogAuctionTaskBuilder();
-            $blogAuctionTask = $blogAuctionTaskBuilder->buildBlogAuctionTask();
+            $dry = $args['DRY'] ?? false;
+            $blogAuctionTask = $blogAuctionTaskBuilder->buildBlogAuctionTask($dry);
 
             $adSpaceRepository = new VendorAdSpacesRepository();
 

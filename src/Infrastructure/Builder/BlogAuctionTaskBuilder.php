@@ -9,6 +9,7 @@ use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Infrastructure\Clock\SystemClock;
 use Quotebot\Infrastructure\MarketStudyProvider\MarketStudyVendorAdapter;
 use Quotebot\Infrastructure\Printer\ConsolePrinter;
+use Quotebot\Infrastructure\Publisher\DryPublisher;
 use Quotebot\Infrastructure\Publisher\VendorPublisher;
 
 class BlogAuctionTaskBuilder
@@ -22,9 +23,9 @@ class BlogAuctionTaskBuilder
         return new ProposalBuilder($marketStudyProvider, $clock);
     }
 
-    public function buildBlogAuctionTask(): BlogAuctionTask
+    public function buildBlogAuctionTask($dry): BlogAuctionTask
     {
-        $publisher = new VendorPublisher();
+        $publisher = $dry ? new DryPublisher() : new VendorPublisher();
 
         $proposalBuilder = $this->buildProposalBuilder();
 

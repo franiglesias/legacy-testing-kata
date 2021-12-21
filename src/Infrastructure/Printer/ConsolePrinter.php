@@ -11,6 +11,6 @@ class ConsolePrinter implements Printer
 {
     public function print(Proposal $proposal): void
     {
-        printf('Proposal %s', $proposal->amount());
+        printf('Proposal %s' . PHP_EOL, $proposal->amount());
     }
 }
