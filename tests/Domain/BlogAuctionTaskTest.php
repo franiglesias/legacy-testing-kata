@@ -3,6 +3,7 @@ declare (strict_types=1);
 
 namespace Quotebot\Tests\Domain;
 
+use PHPUnit\Framework\MockObject\Rule\AnyInvokedCount as PublisherSpy;
 use PHPUnit\Framework\TestCase;
 use Quotebot\Domain\Blog;
 use Quotebot\Domain\BlogAuctionTask;
@@ -16,10 +17,16 @@ use Quotebot\Domain\Publisher;
 class BlogAuctionTaskTest extends TestCase
 {
     private Publisher $publisher;
+    private Clock $clock;
+    private MarketStudyProvider $marketStudyProvider;
+    private BlogAuctionTask $blogAuctionTask;
 
     protected function setUp(): void
     {
-        $this->buildSpyablePublisher();
+        $this->publisher = $this->createMock(Publisher::class);
+        $this->buildClockAlwaysReturning(1);
+        $this->marketStudyProvider = $this->createMock(MarketStudyProvider::class);
+        $this->blogAuctionTask = $this->buildBlogAuctionTask();
     }
 
     /**
@@ -28,11 +35,14 @@ class BlogAuctionTaskTest extends TestCase
      */
     public function shouldGenerateAProposal(Mode $mode, float $averagePrice, Proposal $proposal): void
     {
-        $blogAuctionTask = $this->buildBlogAuctionTask($averagePrice);
+        $blog = new Blog('Blog Example');
 
-        $blogAuctionTask->priceAndPublish(new Blog('Blog Example'), $mode);
+        $this->givenMarketStudyGivesPriceForBlog($blog, $averagePrice);
+        $publisherSpy = $this->expectingProposalToBePublished($proposal);
 
-        self::assertEquals($proposal, $this->publisher->proposal());
+        $this->blogAuctionTask->priceAndPublish($blog, $mode);
+
+        self::assertTrue($publisherSpy->hasBeenInvoked());
     }
 
     public function examplesProvider(): array
@@ -45,70 +55,34 @@ class BlogAuctionTaskTest extends TestCase
         ];
     }
 
-    private function buildBlogAuctionTask(float $averagePrice): BlogAuctionTask
+    private function buildBlogAuctionTask(): BlogAuctionTask
     {
-        $proposalBuilder = $this->buildProposalBuilder($averagePrice);
+        $proposalBuilder = new ProposalBuilder($this->marketStudyProvider, $this->clock);
 
         return new BlogAuctionTask($this->publisher, $proposalBuilder);
     }
 
-    protected function buildSpyablePublisher(): void
+    protected function buildClockAlwaysReturning(int $seconds): void
     {
-        $this->publisher = new class() implements Publisher {
-            private Proposal $proposal;
-
-            public function publish(Proposal $proposal): void
-            {
-                $this->proposal = $proposal;
-            }
-
-            public function proposal(): Proposal
-            {
-                return $this->proposal;
-            }
-        };
+        $this->clock = $this->createMock(Clock::class);
+        $this->clock->method('secondsSince')->willReturn($seconds);
     }
 
-    private function buildProposalBuilder(float $averagePrice): ProposalBuilder
+    protected function givenMarketStudyGivesPriceForBlog(Blog $blog, float $averagePrice): void
     {
-        $marketStudyProvider = $this->buildMarketStudyProvider($averagePrice);
-
-        $clock = $this->buildClock();
-
-        return new ProposalBuilder($marketStudyProvider, $clock);
+        $this->marketStudyProvider
+            ->method('averagePrice')
+            ->with($blog)
+            ->willReturn($averagePrice);
     }
 
-    private function buildMarketStudyProvider(float $averagePrice)
+    protected function expectingProposalToBePublished(Proposal $proposal): PublisherSpy
     {
-        $marketStudyProvider = new class($averagePrice) implements MarketStudyProvider {
+        $this->publisher
+            ->expects($publisherSpy = self::any())
+            ->method('publish')
+            ->with($proposal);
 
-            private float $averagePrice;
-
-            public function __construct(float $averagePrice)
-            {
-                $this->averagePrice = $averagePrice;
-            }
-
-            public function averagePrice(Blog $blog): float
-            {
-                return $this->averagePrice;
-            }
-        };
-
-        return $marketStudyProvider;
+        return $publisherSpy;
     }
-
-    private function buildClock()
-    {
-        $clock = new class() implements Clock {
-
-            public function secondsSince(string $fromDate): int
-            {
-                return 1;
-            }
-        };
-
-        return $clock;
-    }
-
 }
