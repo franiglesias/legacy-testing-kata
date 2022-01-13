@@ -9,8 +9,7 @@ use Symfony\Component\Dotenv\Dotenv;
 
 class Application
 {
-    /** main application method */
-    public static function main(array $args = null)
+    public static function main(array $args = null): void
     {
         $path = $args['BASE_PATH'] ?? __DIR__ . '/../../../';
         $dotEnvFile = $path . '.env';
