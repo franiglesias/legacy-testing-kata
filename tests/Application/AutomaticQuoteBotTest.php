@@ -14,6 +14,7 @@ use Quotebot\Domain\Mode;
 use Quotebot\Domain\Proposal;
 use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Domain\Publisher;
+use Quotebot\Domain\Writer;
 
 class AutomaticQuoteBotTest extends TestCase
 {
@@ -53,10 +54,12 @@ class AutomaticQuoteBotTest extends TestCase
     {
         $this->publisher = $this->createMock(Publisher::class);
         $this->proposalBuilder = $this->createMock(ProposalBuilder::class);
+        $writer = $this->createMock(Writer::class);
 
         return new BlogAuctionTask(
             $this->publisher,
-            $this->proposalBuilder
+            $this->proposalBuilder,
+            $writer
         );
     }
 

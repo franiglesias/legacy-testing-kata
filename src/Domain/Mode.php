@@ -19,13 +19,13 @@ class Mode
         self::ULTRAFAST => 13,
     ];
 
-    private $mode;
+    private string $mode;
 
     public function __construct(string $mode)
     {
         $mode = strtoupper($mode);
 
-        $this->mode = ! isset(self::TIME_FACTOR_MAP[$mode])
+        $this->mode = !isset(self::TIME_FACTOR_MAP[$mode])
             ? self::UNKNOWN
             : $mode;
     }
@@ -33,5 +33,10 @@ class Mode
     public function timeFactor(): int
     {
         return self::TIME_FACTOR_MAP[$this->mode];
+    }
+
+    public function __toString(): string
+    {
+        return $this->mode;
     }
 }

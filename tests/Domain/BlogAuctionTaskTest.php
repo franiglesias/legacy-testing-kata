@@ -1,4 +1,5 @@
 <?php
+
 declare (strict_types=1);
 
 namespace Quotebot\Tests\Domain;
@@ -13,6 +14,7 @@ use Quotebot\Domain\Mode;
 use Quotebot\Domain\Proposal;
 use Quotebot\Domain\ProposalBuilder;
 use Quotebot\Domain\Publisher;
+use Quotebot\Domain\Writer;
 
 class BlogAuctionTaskTest extends TestCase
 {
@@ -20,12 +22,14 @@ class BlogAuctionTaskTest extends TestCase
     private Clock $clock;
     private MarketStudyProvider $marketStudyProvider;
     private BlogAuctionTask $blogAuctionTask;
+    private $writer;
 
     protected function setUp(): void
     {
         $this->publisher = $this->createMock(Publisher::class);
         $this->buildClockAlwaysReturning(1);
         $this->marketStudyProvider = $this->createMock(MarketStudyProvider::class);
+        $this->writer = $this->createMock(Writer::class);
         $this->blogAuctionTask = $this->buildBlogAuctionTask();
     }
 
@@ -40,9 +44,15 @@ class BlogAuctionTaskTest extends TestCase
         $this->givenMarketStudyGivesPriceForBlog($blog, $averagePrice);
         $publisherSpy = $this->expectingProposalToBePublished($proposal);
 
+        $this->writer
+            ->expects($writerSpy = self::any())
+            ->method('line')
+            ->with(sprintf('%s (%s) %s', $blog->name(), $mode, $proposal->amount()));
+
         $this->blogAuctionTask->priceAndPublish($blog, $mode);
 
         self::assertTrue($publisherSpy->hasBeenInvoked());
+        self::assertTrue($writerSpy->hasBeenInvoked());
     }
 
     public function examplesProvider(): array
@@ -59,7 +69,7 @@ class BlogAuctionTaskTest extends TestCase
     {
         $proposalBuilder = new ProposalBuilder($this->marketStudyProvider, $this->clock);
 
-        return new BlogAuctionTask($this->publisher, $proposalBuilder);
+        return new BlogAuctionTask($this->publisher, $proposalBuilder, $this->writer);
     }
 
     protected function buildClockAlwaysReturning(int $seconds): void
