@@ -15,16 +15,22 @@ use Quotebot\Domain\Publisher;
 
 class BlogAuctionTaskTest extends TestCase
 {
-    private $publisher;
+    private Publisher $publisher;
 
-    /** @test
+    protected function setUp(): void
+    {
+        $this->buildSpyablePublisher();
+    }
+
+    /**
+     * @test
      * @dataProvider examplesProvider
      */
-    public function shouldGenerateAProposal(string $mode, float $averagePrice, float $proposal): void
+    public function shouldGenerateAProposal(Mode $mode, float $averagePrice, Proposal $proposal): void
     {
-        $blogAuctionTask = $this->getBlogAuctionTask($averagePrice);
+        $blogAuctionTask = $this->buildBlogAuctionTask($averagePrice);
 
-        $blogAuctionTask->priceAndPublish(new Blog('Blog Example'), new Mode($mode));
+        $blogAuctionTask->priceAndPublish(new Blog('Blog Example'), $mode);
 
         self::assertEquals($proposal, $this->publisher->proposal());
     }
@@ -32,14 +38,47 @@ class BlogAuctionTaskTest extends TestCase
     public function examplesProvider(): array
     {
         return [
-            'odd slow' => ['SLOW', 0.0, 6.28],
-            'even slow' => ['SLOW', 1.0, 6.3],
-            'odd medium' => ['MEDIUM', 0.0, 6.28],
-            'even medium' => ['MEDIUM', 1.0, 12.6],
+            'odd slow' => [new Mode('SLOW'), 0.0, new Proposal(6.28)],
+            'even slow' => [new Mode('SLOW'), 1.0, new Proposal(6.3)],
+            'odd medium' => [new Mode('MEDIUM'), 0.0, new Proposal(6.28)],
+            'even medium' => [new Mode('MEDIUM'), 1.0, new Proposal(12.6)],
         ];
     }
 
-    private function getBlogAuctionTask(float $averagePrice): BlogAuctionTask
+    private function buildBlogAuctionTask(float $averagePrice): BlogAuctionTask
+    {
+        $proposalBuilder = $this->buildProposalBuilder($averagePrice);
+
+        return new BlogAuctionTask($this->publisher, $proposalBuilder);
+    }
+
+    protected function buildSpyablePublisher(): void
+    {
+        $this->publisher = new class() implements Publisher {
+            private Proposal $proposal;
+
+            public function publish(Proposal $proposal): void
+            {
+                $this->proposal = $proposal;
+            }
+
+            public function proposal(): Proposal
+            {
+                return $this->proposal;
+            }
+        };
+    }
+
+    private function buildProposalBuilder(float $averagePrice): ProposalBuilder
+    {
+        $marketStudyProvider = $this->buildMarketStudyProvider($averagePrice);
+
+        $clock = $this->buildClock();
+
+        return new ProposalBuilder($marketStudyProvider, $clock);
+    }
+
+    private function buildMarketStudyProvider(float $averagePrice)
     {
         $marketStudyProvider = new class($averagePrice) implements MarketStudyProvider {
 
@@ -56,6 +95,11 @@ class BlogAuctionTaskTest extends TestCase
             }
         };
 
+        return $marketStudyProvider;
+    }
+
+    private function buildClock()
+    {
         $clock = new class() implements Clock {
 
             public function secondsSince(string $fromDate): int
@@ -64,31 +108,7 @@ class BlogAuctionTaskTest extends TestCase
             }
         };
 
-        $proposalBuilder = new ProposalBuilder($marketStudyProvider, $clock);
-
-        return new BlogAuctionTask($this->publisher, $proposalBuilder);
-    }
-
-    protected function setUp(): void
-    {
-        $this->buildSpyablePublisher();
-    }
-
-    protected function buildSpyablePublisher(): void
-    {
-        $this->publisher = new class() implements Publisher {
-            private Proposal $proposal;
-
-            public function publish(Proposal $proposal): void
-            {
-                $this->proposal = $proposal;
-            }
-
-            public function proposal(): float
-            {
-                return $this->proposal->amount();
-            }
-        };
+        return $clock;
     }
 
 }
