@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Quotebot\Tests;
 
-use ApprovalTests\Approvals;
+use ApprovalTests\CombinationApprovals;
 use PHPUnit\Framework\TestCase;
 use Quotebot\AutomaticQuoteBot;
 use Quotebot\Clock;
@@ -16,23 +16,13 @@ final class AutomaticQuoteBotTest extends TestCase
 	/** @test */
 	public function shouldRun(): void
 	{
-		$marketData = $this->marketData();
-		$publisher  = $this->publisher();
-		$clock      = $this->clock();
-
-		$bot = new AutomaticQuoteBot(
-			$marketData,
-			$publisher,
-			$clock
-		);
-
 		$modes = ['FAST', 'ULTRAFAST', 'SLOW', 'MEDIUM', 'UNKNOWN'];
 
-		foreach ($modes as $mode) {
-			$bot->sendAllQuotes($mode);
-		}
-
-		Approvals::verifyList($publisher->proposals());
+		$publisher = $this->proposalsPublished('FAST');
+		CombinationApprovals::verifyAllCombinations1(
+			[$this, 'proposalsPublished'],
+			$modes
+		);
 
 	}
 
@@ -67,9 +57,10 @@ final class AutomaticQuoteBotTest extends TestCase
 				$this->proposals[] = $proposal;
 			}
 
-			public function proposals(): array
+			public function proposals(): string
 			{
-				return $this->proposals;
+				return implode(PHP_EOL, $this->proposals);
+
 			}
 		};
 	}
@@ -83,6 +74,23 @@ final class AutomaticQuoteBotTest extends TestCase
 				return 10;
 			}
 		};
+	}
+
+	public function proposalsPublished($mode)
+	{
+		$marketData = $this->marketData();
+		$publisher  = $this->publisher();
+		$clock      = $this->clock();
+
+		$bot = new AutomaticQuoteBot(
+			$marketData,
+			$publisher,
+			$clock
+		);
+
+		$bot->sendAllQuotes($mode);
+
+		return $publisher->proposals();
 	}
 
 }
