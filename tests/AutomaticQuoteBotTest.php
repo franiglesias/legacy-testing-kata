@@ -18,7 +18,7 @@ final class AutomaticQuoteBotTest extends TestCase
 	{
 		$modes = ['FAST', 'ULTRAFAST', 'SLOW', 'MEDIUM', 'UNKNOWN'];
 
-		$publisher = $this->proposalsPublished('FAST');
+		$this->proposalsPublished('FAST');
 		CombinationApprovals::verifyAllCombinations1(
 			[$this, 'proposalsPublished'],
 			$modes
